@@ -12,4 +12,13 @@ I will continue to work on this a bit more, but this was really just an exercise
 
 ## Note on Running
 
-I didn't bother to set up virtual environment creation. Might do that in a bit. For now, you might have to just dig through to find the dependencies.
+You should be able to run everything here by first running
+```
+poetry install
+```
+in the parent directory to create the environment. Then
+```
+make
+```
+will run type checking and tests on the library.
+

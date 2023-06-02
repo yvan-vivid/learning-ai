@@ -5,6 +5,7 @@ pkgs.mkShell {
   buildInputs = [
     pkgs.python310
     pkgs.python310Packages.virtualenv
+    pkgs.poetry
   ];
 
   LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";

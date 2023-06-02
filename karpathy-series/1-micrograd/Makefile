@@ -3,7 +3,7 @@
 all: typecheck test
 
 typecheck:
-	mypy micrograd tests
+	poetry run mypy micrograd tests
 
 test:
-	pytest -vv .
+	poetry run pytest -vv .
