@@ -9,3 +9,7 @@ This is my interpretation of the ["micrograd" library](https://github.com/karpat
 5. There were some nice notational properties I think I managed to achieve.
 
 I will continue to work on this a bit more, but this was really just an exercise in thinking through how I would try to organize this kind of thing.
+
+## Note on Running
+
+I didn't bother to set up virtual environment creation. Might do that in a bit. For now, you might have to just dig through to find the dependencies.
