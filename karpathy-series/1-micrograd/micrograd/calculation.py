@@ -13,7 +13,7 @@ class GraphValuation:
     assigned: Dict[int, Valuation]
 
     def forward(self) -> None:
-        for node in self.assignment.graph.graph.topological():
+        for node in self.assignment.graph.topological():
             model = node.data
             if isinstance(model, Operator):
                 self.assigned[node.ident] = model.forward(
@@ -21,8 +21,8 @@ class GraphValuation:
                 )
 
     def backward(self) -> None:
-        graph = self.assignment.graph.graph
-        for node in self.assignment.graph.graph.topological(reverse=True):
+        graph = self.assignment.graph
+        for node in self.assignment.graph.topological(reverse=True):
             model = node.data
             if graph.is_root(node):
                 self.assigned[node.ident].gradient = 1
@@ -38,6 +38,6 @@ class GraphValuation:
             assignment,
             {
                 node.ident: Valuation(assignment.assigned.get(node.ident, 0))
-                for node in assignment.graph.graph.nodes()
+                for node in assignment.graph.nodes()
             },
         )

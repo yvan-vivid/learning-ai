@@ -71,7 +71,7 @@ class Drawing:
 
     def draw_graph_valuation(self, valuation: GraphValuation) -> Digraph:
         dot = self.digraph()
-        nodes, edges = self._nodes_and_edges(valuation.assignment.graph.graph)
+        nodes, edges = self._nodes_and_edges(valuation.assignment.graph)
         for node in nodes:
             node_ident = str(node.ident)
             node_val = valuation.assigned.get(node.ident, Valuation())
@@ -89,22 +89,3 @@ class Drawing:
             dot.edge(str(n1.ident), self._op_ident(str(n2.ident)))
 
         return dot
-
-    # @staticmethod
-    # def _op_id(node: DagNode[ValueData]) -> str:
-    #     return str(node.ident) + node.data.operation
-    #
-    # def draw_values(self, values: ValueGraph) -> Digraph:
-    #             name = node.label() or node_ident
-    #             label, shape = f"'{name}' | data = {node.data.value} | grad = {node.data.gradient}", "record"
-    #             if op != "input":
-    #                 op_ident = self._op_id(node)
-    #                 dot.node(name=op_ident, label=op)
-    #                 dot.edge(op_ident, node_ident)
-    #
-    #         dot.node(name=node_ident, label=label, shape=shape)
-    #
-    #     for n1, n2 in edges:
-    #         dot.edge(self._node_id(n1), self._op_id(n2))
-    #
-    #     return dot
