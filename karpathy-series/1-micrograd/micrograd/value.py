@@ -3,7 +3,7 @@ from typing import Optional, TypeAlias, Tuple, Iterable
 from typing_extensions import Self
 
 from micrograd.graph import Dag, DagNode
-from micrograd.value_type import ValueType, Variable, Sum, Prod
+from micrograd.value_type import ValueType, Variable, Sum, Prod, Tanh, Exp, Pow
 
 
 ValueNode: TypeAlias = DagNode[ValueType]
@@ -40,6 +40,14 @@ class Value:
             return self.node_like(Prod(other), self.node)
         return self.node_like(Prod(), self.node, other.node)
 
+    def tanh(self: Self) -> Self:
+        return self.node_like(Tanh(), self.node)
+    
+    def exp(self: Self) -> Self:
+        return self.node_like(Exp(), self.node)
+    
+    def __pow__(self: Self, exponent: int | float) -> Self:
+        return self.node_like(Pow(exponent), self.node)
     # Derived
     def __radd__(self: Self, other: Self | float) -> Self:
         return self.__add__(other)
@@ -49,6 +57,14 @@ class Value:
 
     def __neg__(self: Self) -> Self:
         return -1*self
+    
+    def __sub__(self: Self, other: Self | float) -> Self:
+        return self + -other
+    
+    def __truediv__(self: Self, other: Self | float) -> Self:
+        if isinstance(other, (float, int)):
+            return self * (1/other)
+        return self * other ** -1
 
     def __str__(self) -> str:
         return f"Value({self.node.data!s})"

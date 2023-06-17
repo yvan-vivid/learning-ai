@@ -2,6 +2,7 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from functools import reduce
 from operator import mul
+from math import exp
 from typing import TypeAlias, Sequence, ClassVar
 
 from micrograd.valuation import Valuation
@@ -79,9 +80,80 @@ class Prod(Operator):
             f(x_1, ..., x_k, c) = c Prod k: n . x_k
         the derivative is
             D[x_k]f = c * (Prod j: n . x_j) / x_k
+                where x_k != 0
+        when x_k is 0, there is not an easy out aside from taking the product of the other values
         """
         for op in operands:
-            op.gradient += result.gradient * result.value / op.value
+            if op.value != 0:
+                op.gradient += result.gradient * result.value / op.value
+            else:
+                op.gradient += result.gradient * reduce(mul, (op2.value for op2 in operands if op != op2), 1)
+
+
+@dataclass(frozen=True)
+class Pow(Operator):
+    glyph = "^"
+    exponent: float
+
+    def __str__(self) -> str:
+        return f"{self.glyph}{self.exponent}"
+
+    def forward(self, operands: Sequence[Valuation]) -> Valuation:
+        assert len(operands) == 1
+        operand = operands[0]
+        return Valuation(operand.value**self.exponent)
+
+    def backward(self, result: Valuation, operands: Sequence[Valuation]) -> None:
+        """
+        For the power
+            x^q
+        the derivative is, match q
+            D[x]x^q = q x^(q-1)
+        """
+        if self.exponent == 0:
+            return
+
+        assert len(operands) == 1
+        operand = operands[0]
+        operand.gradient += result.gradient * self.exponent * operand.value ** (self.exponent - 1)
+
+
+@dataclass(frozen=True)
+class Tanh(Operator):
+    glyph = "tanh"
+
+    def __str__(self) -> str:
+        return str(self.glyph)
+
+    def forward(self, operands: Sequence[Valuation]) -> Valuation:
+        assert len(operands) == 1
+        operand = operands[0]
+        p = exp(2*operand.value)
+        return Valuation((p - 1)/(p + 1))
+
+    def backward(self, result: Valuation, operands: Sequence[Valuation]) -> None:
+        assert len(operands) == 1
+        operand = operands[0]
+        operand.gradient += result.gradient * (1 - result.value**2)
+
+
+@dataclass(frozen=True)
+class Exp(Operator):
+    glyph = "exp"
+
+    def __str__(self) -> str:
+        return str(self.glyph)
+
+    def forward(self, operands: Sequence[Valuation]) -> Valuation:
+        assert len(operands) == 1
+        operand = operands[0]
+        return Valuation(exp(operand.value))
+
+    def backward(self, result: Valuation, operands: Sequence[Valuation]) -> None:
+        assert len(operands) == 1
+        operand = operands[0]
+        operand.gradient += result.gradient * result.value
 
 
 ValueType: TypeAlias = Variable | Operator
+

@@ -41,3 +41,10 @@ class GraphValuation:
                 for node in assignment.graph.nodes()
             },
         )
+
+    @classmethod
+    def run(cls, assignment: Assignment) -> Self:
+        gv = cls.initialize(assignment)
+        gv.forward()
+        gv.backward()
+        return gv
