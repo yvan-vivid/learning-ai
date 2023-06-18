@@ -15,6 +15,10 @@ class Assignment:
         return frozenset(self.assigned.keys()) == frozenset(
             n.ident for n in self.graph.entries())
 
+    def __or__(self: Self, other: Self) -> Self:
+        assert self.graph == other.graph
+        return self.__class__(self.graph, self.assigned | other.assigned)
+
     @classmethod
     def create(cls, graph_like: ValueDag | ValueGraph, assign: Dict[Value, float]) -> Self:
         graph = graph_like.graph if isinstance(graph_like, ValueGraph) else graph_like

@@ -82,3 +82,7 @@ class ValueGraph:
 
     def __getitem__(self, labels: Tuple[str, ...]) -> Iterable[Value]:
         return (self(label) for label in labels)
+
+    def sum(self, *values: Value) -> Value:
+        return Value(self.graph, self.graph.node(Sum(), *(value.node for value in values))) 
+
