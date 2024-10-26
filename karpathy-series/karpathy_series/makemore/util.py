@@ -1,6 +1,8 @@
 from itertools import islice, tee
 from typing import Iterable, Iterator, List, Optional, Tuple, TypeVar
 
+from torch import Tensor, multinomial
+
 V = TypeVar("V")
 
 
@@ -27,3 +29,12 @@ def traverse_str(xs: Iterable[Optional[str]]) -> Optional[str]:
             return None
         out += x
     return out
+
+
+def softmax(v: Tensor) -> Tensor:
+    p = v.exp()
+    return p / p.sum(1, keepdim=True)
+
+
+def sample_index_model(probs: Tensor) -> int:
+    return int(multinomial(probs, num_samples=1, replacement=True).item())

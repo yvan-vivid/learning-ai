@@ -4,12 +4,7 @@ from typing import List, Self
 
 from torch import Tensor, randn
 
-from ..util import sliding_window
-
-
-def softmax(v: Tensor) -> Tensor:
-    p = v.exp()
-    return p / p.sum(1, keepdim=True)
+from ..util import sliding_window, softmax
 
 
 class Net(ABC):
