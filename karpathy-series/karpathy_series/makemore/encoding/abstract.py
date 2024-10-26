@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Generic, Optional, TypeVar
+from typing import Generic, Iterable, List, Optional, TypeVar
+
+from ..util import traverse_list
 
 L = TypeVar("L")
 T = TypeVar("T")
@@ -13,6 +15,12 @@ class Encoder(ABC, Generic[T, L]):
 
     @abstractmethod
     def decode(self, t: T) -> Optional[L]: ...
+
+    def encodes(self, letters: Iterable[L]) -> Optional[List[T]]:
+        return traverse_list(map(self.encode, letters))
+
+    def decodes(self, tokens: Iterable[T]) -> Optional[List[L]]:
+        return traverse_list(map(self.decode, tokens))
 
     def encode_or_raise(self, letter: L) -> T:
         if (v := self.encode(letter)) is None:

@@ -59,6 +59,7 @@ fix = "ruff check --fix"
 
 edit = "nvim"
 repl = "ipython"
+notebooks = "jupyter lab"
 
 [tool.ruff]
 line-length = 120

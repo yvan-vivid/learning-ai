@@ -5,7 +5,6 @@ from typing import List, Self
 from torch import Tensor, randn
 
 from ..util import sliding_window
-from .training import TrainingSequence
 
 
 def softmax(v: Tensor) -> Tensor:
@@ -78,20 +77,3 @@ class MultiLayer(Net):
         hidden.insert(0, size)
         hidden.append(size)
         return cls([randn(p, requires_grad=True) for p in sliding_window(hidden, 2)])
-
-
-@dataclass(frozen=True)
-class Learner:
-    net: Net
-    lr: float
-
-    def __call__(self, training: TrainingSequence, epochs: int = 1) -> None:
-        for k in range(epochs):
-            print(f"Epoch {k} is running:")
-            for n, ps in enumerate(training):
-                loss = self.net.run(*ps)
-                if n % 20 == 0:
-                    print(f"    loss = {loss}")
-                self.net.backward(loss)
-                self.net.update(self.lr)
-            print(f"Epoch {k} is finished with loss = {loss}")

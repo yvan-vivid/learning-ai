@@ -54,3 +54,7 @@ class DelimitedWordEncoder(Encoder[TokenList, str]):
         ch_encoder = CharacterEncoder.from_charset(tokens)
         delimiter = ch_encoder.size
         return cls(WordEncoder(ch_encoder), delimiter, ch_encoder.size + 1)
+
+    @classmethod
+    def from_words(cls, words: Iterable[str]) -> Self:
+        return cls.from_charset(frozenset("".join(words)))
