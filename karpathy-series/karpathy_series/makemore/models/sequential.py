@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-from torch import Tensor
+from torch import Tensor, arange
 
 from .embedding import OneHotEnbedding
 from .net import Net
@@ -19,7 +19,7 @@ class SequentialNet(ABC):
 
     def loss(self, u: Tensor, yis: Tensor) -> Tensor:
         """[N x P] x [index(P)] -> []"""
-        return -u[:, yis].log().mean()
+        return -u[arange(u.shape[0]), yis].log().mean()
 
     def run(self, xis: Tensor, yis: Tensor) -> Tensor:
         return self.loss(self.forward(xis), yis)

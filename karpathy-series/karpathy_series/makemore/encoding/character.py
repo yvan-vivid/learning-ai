@@ -1,26 +1,36 @@
 from dataclasses import dataclass
-from typing import Dict, FrozenSet, Optional, Self, TypeAlias
+from functools import cached_property
+from itertools import product
+from typing import FrozenSet, Iterable, List, Self, Tuple, TypeAlias
 
-from .abstract import Encoder
+from .abstract import TabularEncoder
 
 Token: TypeAlias = int
 
 
 @dataclass(frozen=True)
-class CharacterEncoder(Encoder[Token, str]):
-    forward: Dict[str, Token]
-    reverse: Dict[Token, str]
-    size: int
+class CharacterSet:
+    under: FrozenSet[str]
+    pad: str
 
-    def encode(self, t: str) -> Optional[Token]:
-        return self.forward.get(t)
-
-    def decode(self, c: Token) -> Optional[str]:
-        return self.reverse.get(c)
+    @cached_property
+    def complete(self) -> List[str]:
+        return [self.pad] + sorted(self.under)
 
     @classmethod
-    def from_charset(cls, tokens: FrozenSet[str]) -> Self:
-        charlist = sorted(tokens)
-        forward = {c: i for i, c in enumerate(charlist)}
-        reverse = dict(enumerate(charlist))
-        return cls(forward, reverse, len(forward))
+    def from_words(cls, words: Iterable[str], pad: str = ".") -> Self:
+        return cls(frozenset("".join(words)), pad)
+
+
+@dataclass(frozen=True)
+class CharacterEncoder(TabularEncoder[Token, str]):
+    @classmethod
+    def from_charset(cls, character_set: CharacterSet) -> Self:
+        return cls.from_pairs(enumerate(character_set.complete))
+
+
+@dataclass(frozen=True)
+class BiCharacterEncoder(TabularEncoder[Token, Tuple[str, str]]):
+    @classmethod
+    def from_charset(cls, character_set: CharacterSet) -> Self:
+        return cls.from_pairs(enumerate(product(character_set.complete, character_set.complete)))

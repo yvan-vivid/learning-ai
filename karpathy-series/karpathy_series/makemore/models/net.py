@@ -42,8 +42,8 @@ class OneLayer(Net):
             self.wa.data += -lr * self.wa.grad
 
     @classmethod
-    def init_random_from_size(cls, size: int) -> Self:
-        return cls(randn((size, size), requires_grad=True))
+    def init_random_from_size(cls, in_size: int, out_size: int) -> Self:
+        return cls(randn((in_size, out_size), requires_grad=True))
 
 
 @dataclass(frozen=True)
@@ -68,7 +68,7 @@ class MultiLayer(Net):
                 wa.data += -lr * wa.grad
 
     @classmethod
-    def init_random_from_size(cls, size: int, hidden: List[int]) -> Self:
-        hidden.insert(0, size)
-        hidden.append(size)
+    def init_random_from_size(cls, in_size: int, out_size: int, hidden: List[int]) -> Self:
+        hidden.insert(0, in_size)
+        hidden.append(out_size)
         return cls([randn(p, requires_grad=True) for p in sliding_window(hidden, 2)])

@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Generic, Iterable, List, Optional, TypeVar
+from dataclasses import dataclass
+from typing import Dict, Generic, Iterable, List, Optional, Self, Tuple, TypeVar
 
 from ..util import traverse_list
 
@@ -31,3 +32,24 @@ class Encoder(ABC, Generic[T, L]):
         if (v := self.decode(t)) is None:
             raise ValueError("decoding failures")
         return v
+
+
+@dataclass(frozen=True)
+class TabularEncoder(Generic[T, L], Encoder[T, L]):
+    forward: Dict[L, T]
+    reverse: Dict[T, L]
+    size: int
+
+    def encode(self, t: L) -> Optional[T]:
+        return self.forward.get(t)
+
+    def decode(self, c: T) -> Optional[L]:
+        return self.reverse.get(c)
+
+    @classmethod
+    def from_pairs(cls, token_letter_pairs: Iterable[Tuple[T, L]]) -> Self:
+        forward, reverse = dict(), dict()
+        for token, letter in token_letter_pairs:
+            forward[letter] = token
+            reverse[token] = letter
+        return cls(forward, reverse, len(forward))

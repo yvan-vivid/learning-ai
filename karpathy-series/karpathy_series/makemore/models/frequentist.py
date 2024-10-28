@@ -1,23 +1,20 @@
 from dataclasses import dataclass
 from functools import cached_property
 from itertools import product
-from typing import Iterable, Iterator, List, Self, Tuple
+from typing import Iterable, Iterator, Self, Tuple
 
-from torch import Tensor, int32, multinomial, zeros
+from torch import Tensor, int32, zeros
 
-from ..bigrams import gen_bigrams
+from ..encoding.abstract import Encoder
 from ..encoding.character import Token
-from ..util import sliding_window
-
-
-def _sample_model(probs: Tensor) -> int:
-    return int(multinomial(probs, num_samples=1, replacement=True).item())
+from ..util import sample_index_model, sliding_window
 
 
 @dataclass(frozen=True)
 class FreqModel:
     under: Tensor
-    boundary: Token
+    in_encoder: Encoder[Token, str]
+    out_encoder: Encoder[Token, str]
     count_reg: int = 0
 
     @cached_property
@@ -34,15 +31,17 @@ class FreqModel:
             count += 1
         return -total / count
 
-    def generate(self, max_length: int = 100) -> List[Token]:
-        current = self.boundary
-        name = []
-        probs = self.probs
+    def generate(self, boundary: str = ".", max_length: int = 100) -> str:
+        start_code = self.in_encoder.encode(boundary)
+        end_code = self.out_encoder.encode(boundary)
+        current = start_code
+        name = ""
         for k in range(max_length):
-            if (ix := _sample_model(probs[current])) == self.boundary:
+            if (current := sample_index_model(self.probs[current])) == end_code:
                 break
-            name.append(ix)
-            current = ix
+            if (out := self.out_encoder.decode(current)) is None:
+                continue
+            name += out
         return name
 
     def items(self) -> Iterator[Tuple[Token, Token, int]]:
@@ -50,9 +49,5 @@ class FreqModel:
             yield i, j, int(self.under[i, j].item())
 
     @classmethod
-    def from_words(cls, token_count: int, boundary: Token, words: Iterable[List[Token]]) -> Self:
-        freq = zeros((token_count, token_count), dtype=int32)
-        for word in words:
-            for bg in gen_bigrams(word):
-                freq[bg] += 1
-        return cls(freq, boundary)
+    def as_cleared(cls, in_encoder: Encoder[Token, str], out_encoder: Encoder[Token, str]) -> Self:
+        return cls(zeros(in_encoder.size, out_encoder.size, dtype=int32), in_encoder, out_encoder)
