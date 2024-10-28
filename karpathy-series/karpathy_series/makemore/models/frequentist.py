@@ -8,10 +8,11 @@ from torch import Tensor, int32, zeros
 from ..encoding.abstract import Encoder
 from ..encoding.character import Token
 from ..util import sample_index_model, sliding_window
+from .generation import SequenceGenerator
 
 
 @dataclass(frozen=True)
-class FreqModel:
+class FreqModel(SequenceGenerator):
     under: Tensor
     in_encoder: Encoder[Token, str]
     out_encoder: Encoder[Token, str]
@@ -31,18 +32,8 @@ class FreqModel:
             count += 1
         return -total / count
 
-    def generate(self, boundary: str = ".", max_length: int = 100) -> str:
-        start_code = self.in_encoder.encode(boundary)
-        end_code = self.out_encoder.encode(boundary)
-        current = start_code
-        name = ""
-        for k in range(max_length):
-            if (current := sample_index_model(self.probs[current])) == end_code:
-                break
-            if (out := self.out_encoder.decode(current)) is None:
-                continue
-            name += out
-        return name
+    def generate(self, xi: Token) -> Token:
+        return sample_index_model(self.probs[xi])
 
     def items(self) -> Iterator[Tuple[Token, Token, int]]:
         for i, j in product(range(self.under.shape[0]), range(self.under.shape[1])):

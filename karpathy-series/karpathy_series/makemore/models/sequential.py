@@ -1,9 +1,12 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-from torch import Tensor, arange
+from torch import Tensor, arange, tensor
 
+from ..encoding.character import Token
+from ..util import sample_index_model
 from .embedding import OneHotEnbedding
+from .generation import SequenceGenerator
 from .net import Net
 
 
@@ -26,7 +29,7 @@ class SequentialNet(ABC):
 
 
 @dataclass(frozen=True)
-class OneHotNet(SequentialNet):
+class OneHotNet(SequentialNet, SequenceGenerator):
     embedding: OneHotEnbedding
     net: Net
 
@@ -38,3 +41,6 @@ class OneHotNet(SequentialNet):
 
     def update(self, lr: float) -> None:
         self.net.update(lr)
+
+    def generate(self, xi: Token) -> Token:
+        return sample_index_model(self.forward(tensor([xi])))
