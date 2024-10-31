@@ -4,13 +4,13 @@ from typing import Callable
 from torch import tensor
 
 from ..models.frequentist import FreqModel
-from ..models.net import Net
+from ..models.sequential import SequentialNet
 from .data import FreqTrainingSet, TrainingSequence
 
 
 @dataclass(frozen=True)
 class Learner:
-    model: Net
+    model: SequentialNet
     lr: float
 
     def __call__(self, training: Callable[[], TrainingSequence], epochs: int = 1, report_epochs: int = 10) -> None:
