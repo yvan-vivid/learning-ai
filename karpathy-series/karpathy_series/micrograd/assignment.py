@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Dict
 
 from typing_extensions import Self
 
@@ -10,7 +9,7 @@ from .value_type import Variable
 @dataclass(frozen=True)
 class Assignment:
     graph: ValueDag
-    assigned: Dict[int, float]
+    assigned: dict[int, float]
 
     def is_complete(self) -> bool:
         return frozenset(self.assigned.keys()) == frozenset(n.ident for n in self.graph.entries())
@@ -20,9 +19,9 @@ class Assignment:
         return self.__class__(self.graph, self.assigned | other.assigned)
 
     @classmethod
-    def create(cls, graph_like: ValueDag | ValueGraph, assign: Dict[Value, float]) -> Self:
+    def create(cls, graph_like: ValueDag | ValueGraph, assign: dict[Value, float]) -> Self:
         graph = graph_like.graph if isinstance(graph_like, ValueGraph) else graph_like
-        assigned = {}
+        assigned: dict[int, float] = {}
         for value_node, value in assign.items():
             assert value_node.graph == graph
             assert value_node.node.data == Variable()

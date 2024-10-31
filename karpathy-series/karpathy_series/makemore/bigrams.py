@@ -29,3 +29,13 @@ class TriGram(NamedTuple):
     def generate(cls, pad: str, word: str) -> Iterator[Self]:
         for a, b, c in _padded_window(pad, 2, word):
             yield cls((a, b), c)
+
+
+class NGram(NamedTuple):
+    a: Tuple[str, ...]
+    b: str
+
+    @classmethod
+    def generate(cls, size: int, pad: str, word: str) -> Iterator[Self]:
+        for window in _padded_window(pad, size, word):
+            yield cls(tuple(window[:-1]), window[-1])

@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Iterable, Optional, Tuple, TypeAlias
+from typing import Iterable, Optional, TypeAlias, override
 
 from typing_extensions import Self
 
@@ -26,7 +26,7 @@ class Value:
         return self.__class__(self.graph, self.graph.node(value, *pred))
 
     def __or__(self: Self, label: str) -> Self:
-        self.node.set_label(label)
+        _ = self.node.set_label(label)
         return self
 
     # Immediate
@@ -67,21 +67,23 @@ class Value:
             return self * (1 / other)
         return self * other**-1
 
+    @override
     def __str__(self) -> str:
         return f"Value({self.node.data!s})"
 
+    @override
     def __hash__(self) -> int:
         return hash(self.node)
 
 
 @dataclass(frozen=True)
 class ValueGraph:
-    graph: ValueDag = field(default_factory=Dag)
+    graph: ValueDag = field(default_factory=Dag[ValueType])
 
     def __call__(self, label: Optional[str] = None) -> Value:
         return Value(self.graph, self.graph.node(Variable(), label=label))
 
-    def __getitem__(self, labels: Tuple[str, ...]) -> Iterable[Value]:
+    def __getitem__(self, labels: tuple[str, ...]) -> Iterable[Value]:
         return (self(label) for label in labels)
 
     def sum(self, *values: Value) -> Value:

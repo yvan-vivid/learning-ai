@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Dict, Generic, Iterable, List, Optional, Self, Tuple, TypeVar
+from typing import Generic, Iterable, Optional, Self, Tuple, TypeVar, override
 
 from ..util import traverse_list
 
@@ -17,10 +17,10 @@ class Encoder(ABC, Generic[T, L]):
     @abstractmethod
     def decode(self, t: T) -> Optional[L]: ...
 
-    def encodes(self, letters: Iterable[L]) -> Optional[List[T]]:
+    def encodes(self, letters: Iterable[L]) -> Optional[list[T]]:
         return traverse_list(map(self.encode, letters))
 
-    def decodes(self, tokens: Iterable[T]) -> Optional[List[L]]:
+    def decodes(self, tokens: Iterable[T]) -> Optional[list[L]]:
         return traverse_list(map(self.decode, tokens))
 
     def encode_or_raise(self, letter: L) -> T:
@@ -36,19 +36,22 @@ class Encoder(ABC, Generic[T, L]):
 
 @dataclass(frozen=True)
 class TabularEncoder(Generic[T, L], Encoder[T, L]):
-    forward: Dict[L, T]
-    reverse: Dict[T, L]
+    forward: dict[L, T]
+    reverse: dict[T, L]
     size: int
 
-    def encode(self, t: L) -> Optional[T]:
-        return self.forward.get(t)
+    @override
+    def encode(self, letter: L) -> Optional[T]:
+        return self.forward.get(letter)
 
-    def decode(self, c: T) -> Optional[L]:
-        return self.reverse.get(c)
+    @override
+    def decode(self, t: T) -> Optional[L]:
+        return self.reverse.get(t)
 
     @classmethod
     def from_pairs(cls, token_letter_pairs: Iterable[Tuple[T, L]]) -> Self:
-        forward, reverse = dict(), dict()
+        forward: dict[L, T] = dict()
+        reverse: dict[T, L] = dict()
         for token, letter in token_letter_pairs:
             forward[letter] = token
             reverse[token] = letter

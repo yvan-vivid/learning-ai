@@ -45,4 +45,5 @@ class Layer:
         self.outputs = tuple(neuron.output for neuron in self.neurons)
 
     def assign_from(self, weighting: Callable[[], float]) -> Assignment:
-        return reduce(or_, (neuron.assign_from(weighting) for neuron in self.neurons))
+        value: Assignment = reduce(or_, (neuron.assign_from(weighting) for neuron in self.neurons))
+        return value

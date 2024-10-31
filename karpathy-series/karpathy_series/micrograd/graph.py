@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, Generic, Iterable, Optional, Set, Tuple, TypeVar
+from typing import Generic, Iterable, Optional, Set, Tuple, TypeVar, override
 
 from typing_extensions import Self
 
@@ -31,6 +31,7 @@ class DagNode(Generic[D]):
     def pred_values(self) -> Tuple[D, ...]:
         return tuple(p.data for p in self.pred)
 
+    @override
     def __str__(self) -> str:
         data_str = str(self.data)
         return f"Node({self.ident, data_str})"
@@ -42,8 +43,8 @@ class DagNode(Generic[D]):
 # by assigning to `.pred`, but hay.
 @dataclass
 class Dag(Generic[D], HasIdentities):
-    node_table: Dict[int, DagNode[D]] = field(default_factory=dict)
-    label_table: Dict[int, str] = field(default_factory=dict)
+    node_table: dict[int, DagNode[D]] = field(default_factory=dict)
+    label_table: dict[int, str] = field(default_factory=dict)
     identities: IdentManager = field(default_factory=IdentManager)
 
     # As the graph is built, keep track of roots
@@ -56,7 +57,7 @@ class Dag(Generic[D], HasIdentities):
         self.node_table[new_node_ident] = new_node
 
         if label is not None:
-            new_node.set_label(label)
+            _ = new_node.set_label(label)
 
         # New node is an entry when it has no predecessors
         if len(pred) == 0:
@@ -81,6 +82,7 @@ class Dag(Generic[D], HasIdentities):
     def nodes(self) -> Iterable[DagNode[D]]:
         return self.node_table.values()
 
+    @override
     def __hash__(self) -> int:
         return hash(self.identities)
 

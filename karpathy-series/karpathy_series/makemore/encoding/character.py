@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 from functools import cached_property
 from itertools import product
-from typing import FrozenSet, Iterable, List, Self, Tuple, TypeAlias
+from typing import FrozenSet, Iterable, List, Optional, Self, Tuple, TypeAlias, override
 
-from .abstract import TabularEncoder
+from ..util import traverse_list, traverse_str
+from .abstract import Encoder, TabularEncoder
 
 Token: TypeAlias = int
 
@@ -34,3 +35,16 @@ class BiCharacterEncoder(TabularEncoder[Token, Tuple[str, str]]):
     @classmethod
     def from_charset(cls, character_set: CharacterSet) -> Self:
         return cls.from_pairs(enumerate(product(character_set.complete, character_set.complete)))
+
+
+@dataclass(frozen=True)
+class StringEncoder(Encoder[List[Token], str]):
+    item_encoder: CharacterEncoder
+
+    @override
+    def encode(self, letter: str) -> Optional[List[Token]]:
+        return traverse_list(map(self.item_encoder.encode, letter))
+
+    @override
+    def decode(self, t: List[Token]) -> Optional[str]:
+        return traverse_str(map(self.item_encoder.decode, t))

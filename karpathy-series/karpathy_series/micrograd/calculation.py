@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Dict
 
 from typing_extensions import Self
 
@@ -11,7 +10,7 @@ from .value_type import Operator
 @dataclass(frozen=True)
 class GraphValuation:
     assignment: Assignment
-    assigned: Dict[int, Valuation]
+    assigned: dict[int, Valuation]
 
     def forward(self) -> None:
         for node in self.assignment.graph.topological():

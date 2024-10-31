@@ -1,70 +1,45 @@
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import Generic, Optional, Tuple, Type, TypeVar
+from functools import partial
+from typing import Callable, Tuple, TypeVar
 
-from ..encoding.abstract import Encoder
-from ..encoding.character import Token
-
-IV = TypeVar("IV")
-OV = TypeVar("OV")
+V = TypeVar("V")
 
 
-class SequenceGenerator(ABC):
-    @abstractmethod
-    def generate(self, xi: Token) -> Token: ...
+def generate_string(
+    feedback: Callable[[V], Callable[[str], V]],
+    forward: Callable[[V], str],
+    initial: V,
+    final: str,
+    max_length: int = 100,
+) -> str:
+    fb_state = feedback(in_v := initial)
+    out = ""
+    for _k in range(max_length):
+        if (out_v := forward(in_v)) == final:
+            break
+        out += out_v
+        in_v = fb_state(out_v)
+    return out
 
 
-class GeneratorFeedback(Generic[IV, OV], ABC):
-    def __init__(self, xi: IV) -> None:
-        pass
+def feedbacker(update: Callable[[V, str], V], initial: V) -> Callable[[str], V]:
+    state = initial
 
-    @abstractmethod
-    def __call__(self, yi: OV) -> IV: ...
+    def _inner(c: str) -> V:
+        nonlocal state
+        state = update(state, c)
+        return state
 
-
-@dataclass(frozen=True)
-class StringGenerator(Generic[IV]):
-    in_encoder: Encoder[Token, IV]
-    out_encoder: Encoder[Token, str]
-    feedback: Type[GeneratorFeedback[IV, str]]
-    start: IV
-    end: str
-
-    def __call__(self, model: SequenceGenerator, max_length: int = 100) -> str:
-        def _generate(v: IV) -> Optional[str]:
-            if (ix := self.in_encoder.encode(v)) is None:
-                return None
-
-            if (w := self.out_encoder.decode(model.generate(ix))) is None:
-                return None
-
-            return w
-
-        fb = self.feedback(current := self.start)
-        name = ""
-        for k in range(max_length):
-            out = _generate(current)
-            if out == self.end:
-                break
-            if out is None:
-                raise ValueError("Encoding problem")
-            current = fb(out)
-            name += out
-        return name
+    return _inner
 
 
-class BiGramFeedback(GeneratorFeedback[str, str]):
-    def __call__(self, yi: str) -> str:
-        return yi
+def _n_gram_update(state: str, c: str) -> str:
+    return state[1:] + c
 
 
-class TriGramFeedback(GeneratorFeedback[Tuple[str, str], str]):
-    register: str
+def _tri_gram_update(state: Tuple[str, str], c: str) -> Tuple[str, str]:
+    return state[1], c
 
-    def __init__(self, xi: Tuple[str, str]) -> None:
-        self.register = xi[1]
 
-    def __call__(self, yi: str) -> Tuple[str, str]:
-        out = (self.register, yi)
-        self.register = yi
-        return out
+n_gram_generate = partial(generate_string, partial(feedbacker, _n_gram_update))
+bi_gram_generate = partial(generate_string, partial(feedbacker, (lambda _state, c: c)))
+tri_gram_generate = partial(generate_string, partial(feedbacker, _tri_gram_update))

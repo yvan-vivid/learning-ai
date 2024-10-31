@@ -8,11 +8,11 @@ from torch import Tensor, int32, zeros
 from ..encoding.abstract import Encoder
 from ..encoding.character import Token
 from ..util import sample_index_model, sliding_window
-from .generation import SequenceGenerator
+from .generation import bi_gram_generate
 
 
 @dataclass(frozen=True)
-class FreqModel(SequenceGenerator):
+class FreqModel:
     under: Tensor
     in_encoder: Encoder[Token, str]
     out_encoder: Encoder[Token, str]
@@ -32,8 +32,13 @@ class FreqModel(SequenceGenerator):
             count += 1
         return -total / count
 
-    def generate(self, xi: Token) -> Token:
-        return sample_index_model(self.probs[xi])
+    def generate(self, max_length: int = 100) -> str:
+        def _forward(in_v: str) -> str:
+            return self.out_encoder.decode_or_raise(
+                sample_index_model(self.probs[self.in_encoder.encode_or_raise(in_v)])
+            )
+
+        return bi_gram_generate(_forward, ".", ".", max_length)
 
     def items(self) -> Iterator[Tuple[Token, Token, int]]:
         for i, j in product(range(self.under.shape[0]), range(self.under.shape[1])):

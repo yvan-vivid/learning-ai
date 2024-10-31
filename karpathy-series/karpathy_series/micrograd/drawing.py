@@ -25,7 +25,8 @@ class Drawing:
 
     @staticmethod
     def _nodes_and_edges(dag: Dag[D]) -> Tuple[NodeList[D], EdgeList[D]]:
-        nodes, edges = [], []
+        nodes: NodeList[D] = []
+        edges: EdgeList[D] = []
         for node in dag.node_table.values():
             nodes.append(node)
             for pred in node.pred:

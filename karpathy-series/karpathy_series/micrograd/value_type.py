@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from functools import reduce
 from math import exp
 from operator import mul
-from typing import ClassVar, Sequence, TypeAlias
+from typing import ClassVar, Sequence, TypeAlias, override
 
 from .valuation import Valuation
 
@@ -42,15 +42,18 @@ class Operator(ValueTypeBase):
 
 @dataclass(frozen=True)
 class Sum(Operator):
-    glyph = "+"
+    glyph: ClassVar[str] = "+"
     bias: float = 0
 
+    @override
     def __str__(self) -> str:
         return str(self.glyph) if self.bias == 0 else f"{self.glyph} {self.bias}"
 
+    @override
     def forward(self, operands: Sequence[Valuation]) -> Valuation:
         return Valuation(sum(v.value for v in operands) + self.bias)
 
+    @override
     def backward(self, result: Valuation, operands: Sequence[Valuation]) -> None:
         """
         For the sum
@@ -64,15 +67,19 @@ class Sum(Operator):
 
 @dataclass(frozen=True)
 class Prod(Operator):
-    glyph = "×"
+    glyph: ClassVar[str] = "×"
     coefficient: float = 1
 
+    @override
     def __str__(self) -> str:
         return str(self.glyph) if self.coefficient == 1 else f"{self.coefficient}{self.glyph}"
 
+    @override
     def forward(self, operands: Sequence[Valuation]) -> Valuation:
-        return Valuation(reduce(mul, (v.value for v in operands)) * self.coefficient)
+        value: float = reduce(mul, (v.value for v in operands)) * self.coefficient
+        return Valuation(value)
 
+    @override
     def backward(self, result: Valuation, operands: Sequence[Valuation]) -> None:
         """
         For the product
@@ -91,17 +98,21 @@ class Prod(Operator):
 
 @dataclass(frozen=True)
 class Pow(Operator):
-    glyph = "^"
+    glyph: ClassVar[str] = "^"
     exponent: float
 
+    @override
     def __str__(self) -> str:
         return f"{self.glyph}{self.exponent}"
 
+    @override
     def forward(self, operands: Sequence[Valuation]) -> Valuation:
         assert len(operands) == 1
         operand = operands[0]
-        return Valuation(operand.value**self.exponent)
+        value: float = operand.value**self.exponent
+        return Valuation(value)
 
+    @override
     def backward(self, result: Valuation, operands: Sequence[Valuation]) -> None:
         """
         For the power
@@ -119,17 +130,20 @@ class Pow(Operator):
 
 @dataclass(frozen=True)
 class Tanh(Operator):
-    glyph = "tanh"
+    glyph: ClassVar[str] = "tanh"
 
+    @override
     def __str__(self) -> str:
         return str(self.glyph)
 
+    @override
     def forward(self, operands: Sequence[Valuation]) -> Valuation:
         assert len(operands) == 1
         operand = operands[0]
         p = exp(2 * operand.value)
         return Valuation((p - 1) / (p + 1))
 
+    @override
     def backward(self, result: Valuation, operands: Sequence[Valuation]) -> None:
         assert len(operands) == 1
         operand = operands[0]
@@ -138,16 +152,19 @@ class Tanh(Operator):
 
 @dataclass(frozen=True)
 class Exp(Operator):
-    glyph = "exp"
+    glyph: ClassVar[str] = "exp"
 
+    @override
     def __str__(self) -> str:
         return str(self.glyph)
 
+    @override
     def forward(self, operands: Sequence[Valuation]) -> Valuation:
         assert len(operands) == 1
         operand = operands[0]
         return Valuation(exp(operand.value))
 
+    @override
     def backward(self, result: Valuation, operands: Sequence[Valuation]) -> None:
         assert len(operands) == 1
         operand = operands[0]

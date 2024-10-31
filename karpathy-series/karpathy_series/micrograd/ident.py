@@ -1,6 +1,6 @@
 from abc import ABCMeta
 from dataclasses import dataclass, field
-from typing import FrozenSet, Optional, Dict
+from typing import Dict, FrozenSet, Optional, override
 
 
 # Manages a labeled collection of identifiers
@@ -23,9 +23,11 @@ class IdentManager:
     def labels(self) -> FrozenSet[str]:
         return frozenset(self.label_table.values())
 
+    @override
     def __str__(self) -> str:
         return f"IdentManager({self.ident_source})"
 
+    @override
     def __hash__(self) -> int:
         return id(self)
 
