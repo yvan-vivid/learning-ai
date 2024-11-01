@@ -27,6 +27,25 @@ class MPLNet(SequentialNet):
         return h @ self.output_net + self.output_bias
 
     @classmethod
+    def init(
+        cls,
+        input_net: Tensor,
+        hidden_net: Tensor,
+        hidden_bias: Tensor,
+        output_net: Tensor,
+        output_bias: Tensor,
+        context_size: int,
+    ) -> Self:
+        return cls(
+            input_net.requires_grad_(),
+            hidden_net.requires_grad_(),
+            hidden_bias.requires_grad_(),
+            output_net.requires_grad_(),
+            output_bias.requires_grad_(),
+            context_size,
+        )
+
+    @classmethod
     def init_random_from_size(
         cls,
         encoding_size: int,
@@ -36,11 +55,30 @@ class MPLNet(SequentialNet):
         generator: Optional[Generator],
     ) -> Self:
         context_length = context_size * embedding_dims
-        return cls(
-            randn(encoding_size, embedding_dims, generator=generator, requires_grad=True),
-            randn(context_length, hidden_dims, generator=generator, requires_grad=True),
-            randn(hidden_dims, generator=generator, requires_grad=True),
-            randn(hidden_dims, encoding_size, generator=generator, requires_grad=True),
-            randn(encoding_size, generator=generator, requires_grad=True),
+        return cls.init(
+            randn(encoding_size, embedding_dims, generator=generator),
+            randn(context_length, hidden_dims, generator=generator),
+            randn(hidden_dims, generator=generator),
+            randn(hidden_dims, encoding_size, generator=generator),
+            randn(encoding_size, generator=generator),
+            context_size,
+        )
+
+    @classmethod
+    def init_normalized_from_size(
+        cls,
+        encoding_size: int,
+        context_size: int,
+        embedding_dims: int,
+        hidden_dims: int,
+        generator: Optional[Generator],
+    ) -> Self:
+        context_length = context_size * embedding_dims
+        return cls.init(
+            randn(encoding_size, embedding_dims, generator=generator),
+            randn(context_length, hidden_dims, generator=generator) * 0.2,
+            randn(hidden_dims, generator=generator) * 0.001,
+            randn(hidden_dims, encoding_size, generator=generator) * 0.01,
+            randn(encoding_size, generator=generator) * 0.001,
             context_size,
         )

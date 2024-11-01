@@ -19,7 +19,7 @@ def test_make_training_set() -> None:
 
 
 def test_make_training_sequence() -> None:
-    outs = tuple(TS.training_sequence(["a", "bc", "b"], 2))
+    outs = tuple(TS.training_sequence(["a", "bc", "b"], 2)())
     assert_close(outs[0][0], tensor([0, 1, 0, 2, 3]))
     assert_close(outs[0][1], tensor([1, 0, 2, 3, 0]))
     assert_close(outs[1][0], tensor([0, 2]))

@@ -13,7 +13,7 @@ OV = TypeVar("OV")
 IT = TypeVar("IT", bound=Token | list[Token])
 
 TrainingSet: TypeAlias = Tuple[Tensor, Tensor]
-TrainingSequence: TypeAlias = Iterable[TrainingSet]
+TrainingSequence: TypeAlias = Callable[[], Iterable[TrainingSet]]
 TrainingItemGenerator: TypeAlias = Callable[[str], Iterable[Tuple[IV, OV]]]
 
 FreqTrainingSet: TypeAlias = Iterator[Tuple[Token, Token]]
@@ -35,10 +35,14 @@ class TrainingSequencer(Generic[IV, OV, IT]):
         return tensor(xs), tensor(ys)
 
     def training_sequence(self, words: Sequence[str], block_size: int, shuffle: bool = False) -> TrainingSequence:
-        if shuffle:
-            words = sample(words, len(words))
-        for s in block_sequence(len(words), block_size):
-            yield self.training_set(words[s])
+        def sequencer() -> Iterable[TrainingSet]:
+            nonlocal words
+            if shuffle:
+                words = sample(words, len(words))
+            for s in block_sequence(len(words), block_size):
+                yield self.training_set(words[s])
+
+        return sequencer
 
 
 @dataclass(frozen=True)

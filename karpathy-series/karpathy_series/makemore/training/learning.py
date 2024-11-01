@@ -1,7 +1,4 @@
 from dataclasses import dataclass
-from typing import Callable
-
-from torch import tensor
 
 from ..models.frequentist import FreqModel
 from ..models.sequential import SequentialNet
@@ -13,15 +10,17 @@ class Learner:
     model: SequentialNet
     lr: float
 
-    def __call__(self, training: Callable[[], TrainingSequence], epochs: int = 1, report_epochs: int = 10) -> None:
+    def __call__(self, training: TrainingSequence, epochs: int = 1, report_epochs: int = 10) -> list[float]:
+        losses: list[float] = []
         for k in range(epochs):
-            loss = tensor([])
-            for _n, ps in enumerate(training()):
-                loss = self.model.run(*ps)
-                self.model.backward(loss)
+            f_loss = 0.0
+            for _n, (xis, yis) in enumerate(training()):
+                self.model.backward(loss := self.model.run(xis, yis))
                 self.model.update(self.lr)
+                losses.append(f_loss := float(loss.item()))
             if (k + 1) % report_epochs == 0:
-                print(f"Epoch {k + 1} is finished with loss = {loss}")
+                print(f"Epoch {k + 1} is finished with loss = {f_loss}")
+        return losses
 
 
 @dataclass(frozen=True)
