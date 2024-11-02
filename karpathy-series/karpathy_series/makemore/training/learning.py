@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from ..models.frequentist import FreqModel
 from ..models.sequential import SequentialNet
-from .data import FreqTrainingSet, TrainingSequence
+from .data import TrainingSequence
 
 
 @dataclass(frozen=True)
@@ -27,6 +27,9 @@ class Learner:
 class FreqLearner:
     model: FreqModel
 
-    def __call__(self, training: FreqTrainingSet) -> None:
-        for ix, iy in training:
-            self.model.under[ix, iy] += 1
+    def __call__(self, training: TrainingSequence) -> list[float]:
+        losses: list[float] = []
+        for _n, (xis, yis) in enumerate(training()):
+            self.model.train(xis, yis)
+            losses.append(float(self.model.run(xis, yis).item()))
+        return losses

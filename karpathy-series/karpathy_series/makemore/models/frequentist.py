@@ -1,49 +1,45 @@
 from dataclasses import dataclass
-from functools import cached_property
 from itertools import product
-from typing import Iterable, Iterator, Self, Tuple
+from typing import Iterator, Self, Tuple, override
 
 from torch import Tensor, int32, zeros
 
-from ..encoding.abstract import Encoder
+from karpathy_series.makemore.models.sequential import SequentialNet
+
 from ..encoding.character import Token
-from ..util import sample_index_model, sliding_window
-from .generation import bi_gram_generate
+from ..util import cross_entropy_exp, norm_distro, sample_index_model
 
 
 @dataclass(frozen=True)
-class FreqModel:
-    under: Tensor
-    in_encoder: Encoder[Token, str]
-    out_encoder: Encoder[Token, str]
-    count_reg: int = 0
+class FreqModel(SequentialNet):
+    encoding_size: int
+    counts: Tensor
 
-    @cached_property
-    def probs(self) -> Tensor:
-        p = (self.under + self.count_reg).float()
-        return p / p.sum(1, keepdim=True)
+    @override
+    def parameters(self) -> list[Tensor]:
+        return [self.counts]
 
-    def loss(self, tokens: Iterable[Token]) -> float:
-        total, count = 0.0, 0
-        for pair in sliding_window(tokens, 2):
-            if (p := self.probs[pair]) == 0:
-                raise ValueError(f"Impossible token pair '{pair}' sampled")
-            total += p.log().item()
-            count += 1
-        return -total / count
+    @override
+    def forward(self, xis: Tensor) -> Tensor:
+        return self.counts[xis].float()
 
-    def generate(self, max_length: int = 100) -> str:
-        def _forward(in_v: str) -> str:
-            return self.out_encoder.decode_or_raise(
-                sample_index_model(self.probs[self.in_encoder.encode_or_raise(in_v)])
-            )
+    @override
+    def loss(self, u: Tensor, yis: Tensor) -> Tensor:
+        return cross_entropy_exp(u, yis)
 
-        return bi_gram_generate(_forward, ".", ".", max_length)
+    @override
+    def generate(self, xi: Tensor) -> Token:
+        return sample_index_model(norm_distro(self.forward(xi), -1))
+
+    def train(self, xis: Tensor, yis: Tensor) -> None:
+        assert xis.shape == yis.shape
+        for xi, yi in zip(list(xis), list(yis)):
+            self.counts[xi, yi] += 1
 
     def items(self) -> Iterator[Tuple[Token, Token, int]]:
-        for i, j in product(range(self.under.shape[0]), range(self.under.shape[1])):
-            yield i, j, int(self.under[i, j].item())
+        for i, j in product(range(self.encoding_size), range(self.encoding_size)):
+            yield i, j, int(self.counts[i, j].item())
 
     @classmethod
-    def as_cleared(cls, in_encoder: Encoder[Token, str], out_encoder: Encoder[Token, str]) -> Self:
-        return cls(zeros(in_encoder.size, out_encoder.size, dtype=int32), in_encoder, out_encoder)
+    def as_cleared(cls, encoding_size: int, regularization: int = 0) -> Self:
+        return cls(encoding_size, zeros(encoding_size, encoding_size, dtype=int32) + regularization)

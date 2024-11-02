@@ -43,19 +43,3 @@ class TrainingSequencer(Generic[IV, OV, IT]):
                 yield self.training_set(words[s])
 
         return sequencer
-
-
-@dataclass(frozen=True)
-class FreqTrainingSequencer(Generic[IV, OV]):
-    in_encoder: Encoder[Token, IV]
-    out_encoder: Encoder[Token, OV]
-    generator: TrainingItemGenerator[IV, OV]
-
-    def training_sequence(self, words: Iterable[str]) -> FreqTrainingSet:
-        for word in words:
-            for x, y in self.generator(word):
-                if (ix := self.in_encoder.encode(x)) is None:
-                    raise ValueError(f"Cannot decode x = {x}")
-                if (iy := self.out_encoder.encode(y)) is None:
-                    raise ValueError(f"Cannot decode y = {y}")
-                yield ix, iy

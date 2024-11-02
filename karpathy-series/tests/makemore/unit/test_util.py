@@ -1,4 +1,7 @@
-from karpathy_series.makemore.util import block_sequence, sliding_window, traverse_list, traverse_str
+from torch import tensor
+from torch.testing import assert_close
+
+from karpathy_series.makemore.util import block_sequence, norm_distro, sliding_window, traverse_list, traverse_str
 
 
 def test_sliding_window() -> None:
@@ -30,3 +33,42 @@ def test_block_sequence() -> None:
     assert tuple(block_sequence(3, 3)) == (slice(0, 3),)
     assert tuple(block_sequence(3, 4)) == (slice(0, 3),)
     assert tuple(block_sequence(0, 4)) == ()
+
+
+def test_norm_distro() -> None:
+    assert_close(norm_distro(tensor([])), tensor([]))
+    assert_close(norm_distro(tensor([1, 4, 2, 1])), tensor([0.125, 0.5, 0.25, 0.125]))
+    assert_close(
+        norm_distro(
+            tensor(
+                [
+                    [1, 4, 2, 1],
+                    [0, 2, 0, 2],
+                ]
+            ),
+            1,
+        ),
+        tensor(
+            [
+                [0.125, 0.5, 0.25, 0.125],
+                [0, 0.5, 0, 0.5],
+            ]
+        ),
+    )
+    assert_close(
+        norm_distro(
+            tensor(
+                [
+                    [1, 4, 2, 1],
+                    [0, 2, 0, 2],
+                ]
+            ),
+            0,
+        ),
+        tensor(
+            [
+                [1, 0.66667, 1, 0.33333],
+                [0, 0.33333, 0, 0.66667],
+            ]
+        ),
+    )

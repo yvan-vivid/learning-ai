@@ -7,7 +7,6 @@ from torch import tensor
 from karpathy_series.makemore.encoding.abstract import Encoder
 from karpathy_series.makemore.encoding.character import CharacterSet, Token
 from karpathy_series.makemore.models.sequential import SequentialNet
-from karpathy_series.makemore.util import sample_index_logits
 
 V = TypeVar("V")
 
@@ -65,8 +64,7 @@ class BiGramNetGenerator:
 
     def forward(self, c: str) -> str:
         in_v = tensor([self.encoder.encode_or_raise(c)])
-        out_v = self.net.forward(in_v)
-        return self.encoder.decode_or_raise(sample_index_logits(out_v))
+        return self.encoder.decode_or_raise(self.net.generate(in_v))
 
     def __call__(self, max_length: int = 100) -> str:
         return self.generator(max_length)
@@ -85,8 +83,7 @@ class TriGramNetGenerator:
 
     def forward(self, c: tuple[str, str]) -> str:
         in_v = tensor([self.in_encoder.encode_or_raise(c)])
-        out_v = self.net.forward(in_v)
-        return self.out_encoder.decode_or_raise(sample_index_logits(out_v))
+        return self.out_encoder.decode_or_raise(self.net.generate(in_v))
 
     def __call__(self, max_length: int = 100) -> str:
         return self.generator(max_length)
@@ -106,8 +103,7 @@ class NGramNetGenerator:
 
     def forward(self, c: str) -> str:
         in_v = tensor(self.in_encoder.encode_or_raise(c))
-        out_v = self.net.forward(in_v)
-        return self.out_encoder.decode_or_raise(sample_index_logits(out_v))
+        return self.out_encoder.decode_or_raise(self.net.generate(in_v))
 
     def __call__(self, max_length: int = 100) -> str:
         return self.generator(max_length)

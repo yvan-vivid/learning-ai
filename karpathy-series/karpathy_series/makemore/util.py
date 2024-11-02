@@ -46,9 +46,11 @@ def block_sequence(size: int, block_size: int) -> Iterator[slice]:
         yield slice(blocks_ub, None)
 
 
-def softmax(v: Tensor) -> Tensor:
-    p = v.exp()
-    return p / p.sum(1, keepdim=True)
+# Array utilities
+
+
+def norm_distro(v: Tensor, dim: int = 0) -> Tensor:
+    return v / v.sum(dim, keepdim=True)
 
 
 def sample_index_model(probs: Tensor) -> int:
@@ -57,3 +59,7 @@ def sample_index_model(probs: Tensor) -> int:
 
 def sample_index_logits(logits: Tensor) -> int:
     return sample_index_model(logits.softmax(1))
+
+
+def cross_entropy_exp(u: Tensor, y: Tensor) -> Tensor:
+    return -norm_distro(u, -1)[range(u.shape[0]), y].log().mean()
