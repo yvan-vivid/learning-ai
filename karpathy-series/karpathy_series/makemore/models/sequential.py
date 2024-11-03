@@ -21,6 +21,9 @@ class SequentialNet(ABC):
     @abstractmethod
     def forward(self, xis: Tensor) -> Tensor: ...
 
+    def forward_inference(self, xis: Tensor) -> Tensor:
+        return self.forward(xis)
+
     def backward(self, loss: Tensor) -> None:
         for wa in self.parameters():
             wa.grad = None
@@ -38,4 +41,4 @@ class SequentialNet(ABC):
         return self.loss(self.forward(xis), yis)
 
     def generate(self, xi: Tensor) -> Token:
-        return sample_index_logits(self.forward(xi))
+        return sample_index_logits(self.forward_inference(xi))
