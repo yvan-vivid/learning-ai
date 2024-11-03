@@ -1,7 +1,14 @@
 from dataclasses import dataclass
+from itertools import chain, repeat
 from typing import Optional, Self, override
 
 from torch import Generator, Tensor, no_grad, ones, randn, tanh, zeros
+
+from karpathy_series.makemore.models.components.component import Component
+from karpathy_series.makemore.models.components.embedding import Embedding
+from karpathy_series.makemore.models.components.functional import Tanh
+from karpathy_series.makemore.models.components.linear import Linear
+from karpathy_series.makemore.util import sliding_window
 
 from .sequential import SequentialNet
 
@@ -111,4 +118,56 @@ class MPLNet(SequentialNet):
             randn(hidden_dims, encoding_size, generator=generator) * 0.01,
             randn(encoding_size, generator=generator) * 0.001,
             context_size,
+        )
+
+
+@dataclass(frozen=True)
+class MPLNetComponents(SequentialNet):
+    layers: list[Component]
+    encoding_size: int
+    embedding_dims: int
+    context_size: int
+    context_length: int
+
+    @override
+    def parameters(self) -> list[Tensor]:
+        return [p for c in self.layers for p in c.parameters()]
+
+    @override
+    def forward(self, xis: Tensor, training: bool = False) -> Tensor:
+        out = self.layers[0](xis).view(-1, self.context_length)
+        for layer in self.layers[1:]:
+            out = layer(out, training)
+        return out
+
+    @classmethod
+    def init(
+        cls,
+        num_layers: int,
+        encoding_size: int,
+        embedding_dims: int,
+        context_size: int,
+        hidden_dims: int,
+        generator: Optional[Generator],
+    ) -> Self:
+        init_scale = 5.0 / 3.0
+        context_length = embedding_dims * context_size
+        boundaries = sliding_window(chain((context_length,), repeat(hidden_dims, num_layers)), 2)
+        layers: list[Component] = list(
+            chain(
+                (Embedding(encoding_size, embedding_dims, generator=generator),),
+                chain.from_iterable(
+                    (Linear(fan_in, fan_out, init_scale=init_scale, generator=generator), Tanh())
+                    for fan_in, fan_out in boundaries
+                ),
+                (Linear(hidden_dims, encoding_size, init_scale=0.01, generator=generator),),
+            )
+        )
+
+        return cls(
+            layers,
+            encoding_size,
+            embedding_dims,
+            context_size,
+            context_length,
         )
