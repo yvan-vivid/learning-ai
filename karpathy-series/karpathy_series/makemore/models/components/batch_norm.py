@@ -1,6 +1,6 @@
-from typing import Optional, override
+from typing import override
 
-from torch import Generator, Tensor, no_grad, ones, sqrt, zeros
+from torch import Tensor, no_grad, ones, sqrt, zeros
 
 from karpathy_series.makemore.models.components.component import Component
 
@@ -13,9 +13,7 @@ class BatchNorm1d(Component):
     mean: Tensor
     variance: Tensor
 
-    def __init__(
-        self, dim: int, eps: float = 1e-5, momentum: float = 0.1, generator: Optional[Generator] = None
-    ) -> None:
+    def __init__(self, dim: int, eps: float = 1e-5, momentum: float = 0.1) -> None:
         self.eps = eps
         self.momentum = momentum
         self.gamma = ones(dim).requires_grad_()
@@ -36,7 +34,7 @@ class BatchNorm1d(Component):
         return self.gamma * (x - mean) / sqrt(variance + self.eps) + self.beta
 
     def forward_training(self, x: Tensor) -> Tensor:
-        self._update_statistics(mean := x.mean(0, keepdim=True), variance := x.var(0, keepdim=True))
+        self._update_statistics(mean := x.mean(0), variance := x.var(0))
         return self.normalize(x, mean, variance)
 
     def forward_inference(self, x: Tensor) -> Tensor:

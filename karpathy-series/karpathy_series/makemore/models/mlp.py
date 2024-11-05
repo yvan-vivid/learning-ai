@@ -1,11 +1,14 @@
 from dataclasses import dataclass
-from itertools import chain, repeat
+from functools import partial
+from itertools import chain, repeat, starmap
 from typing import Optional, Self, override
 
 from torch import Generator, Tensor, no_grad, ones, randn, tanh, zeros
 
+from karpathy_series.makemore.models.components.batch_norm import BatchNorm1d
 from karpathy_series.makemore.models.components.component import Component
 from karpathy_series.makemore.models.components.embedding import Embedding
+from karpathy_series.makemore.models.components.flatten import Flatten
 from karpathy_series.makemore.models.components.functional import Tanh
 from karpathy_series.makemore.models.components.linear import Linear
 from karpathy_series.makemore.util import sliding_window
@@ -127,18 +130,25 @@ class MPLNetComponents(SequentialNet):
     encoding_size: int
     embedding_dims: int
     context_size: int
-    context_length: int
 
     @override
     def parameters(self) -> list[Tensor]:
         return [p for c in self.layers for p in c.parameters()]
 
     @override
-    def forward(self, xis: Tensor, training: bool = False) -> Tensor:
-        out = self.layers[0](xis).view(-1, self.context_length)
-        for layer in self.layers[1:]:
+    def forward(self, xis: Tensor, training: bool = True) -> Tensor:
+        out = xis
+        for layer in self.layers:
             out = layer(out, training)
         return out
+
+    @override
+    def forward_inference(self, xis: Tensor) -> Tensor:
+        return self.forward(xis, training=False)
+
+    @staticmethod
+    def module(fan_in: int, fan_out: int, init_scale: float, generator: Optional[Generator]) -> list[Component]:
+        return [Linear(fan_in, fan_out, init_scale=init_scale, generator=generator), BatchNorm1d(fan_out), Tanh()]
 
     @classmethod
     def init(
@@ -153,14 +163,12 @@ class MPLNetComponents(SequentialNet):
         init_scale = 5.0 / 3.0
         context_length = embedding_dims * context_size
         boundaries = sliding_window(chain((context_length,), repeat(hidden_dims, num_layers)), 2)
+        module = partial(cls.module, init_scale=init_scale, generator=generator)
         layers: list[Component] = list(
             chain(
-                (Embedding(encoding_size, embedding_dims, generator=generator),),
-                chain.from_iterable(
-                    (Linear(fan_in, fan_out, init_scale=init_scale, generator=generator), Tanh())
-                    for fan_in, fan_out in boundaries
-                ),
-                (Linear(hidden_dims, encoding_size, init_scale=0.01, generator=generator),),
+                (Embedding(encoding_size, embedding_dims, generator=generator), Flatten(2)),
+                chain.from_iterable(starmap(module, boundaries)),
+                (Linear(hidden_dims, encoding_size, init_scale=0.01, generator=generator), BatchNorm1d(encoding_size)),
             )
         )
 
@@ -169,5 +177,4 @@ class MPLNetComponents(SequentialNet):
             encoding_size,
             embedding_dims,
             context_size,
-            context_length,
         )

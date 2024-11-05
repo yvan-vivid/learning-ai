@@ -1,12 +1,12 @@
 from dataclasses import dataclass
+from itertools import batched
 from random import sample
-from typing import Callable, Generic, Iterable, Iterator, Sequence, Tuple, TypeAlias, TypeVar
+from typing import Callable, Generic, Iterable, Self, Sequence, Tuple, TypeAlias, TypeVar
 
 from torch import Tensor, tensor
 
 from ..encoding.abstract import Encoder
 from ..encoding.character import Token
-from ..util import block_sequence
 
 IV = TypeVar("IV")
 OV = TypeVar("OV")
@@ -15,8 +15,6 @@ IT = TypeVar("IT", bound=Token | list[Token])
 TrainingSet: TypeAlias = Tuple[Tensor, Tensor]
 TrainingSequence: TypeAlias = Callable[[], Iterable[TrainingSet]]
 TrainingItemGenerator: TypeAlias = Callable[[str], Iterable[Tuple[IV, OV]]]
-
-FreqTrainingSet: TypeAlias = Iterator[Tuple[Token, Token]]
 
 
 @dataclass(frozen=True)
@@ -35,11 +33,20 @@ class TrainingSequencer(Generic[IV, OV, IT]):
         return tensor(xs), tensor(ys)
 
     def training_sequence(self, words: Sequence[str], block_size: int, shuffle: bool = False) -> TrainingSequence:
-        def sequencer() -> Iterable[TrainingSet]:
-            nonlocal words
-            if shuffle:
-                words = sample(words, len(words))
-            for s in block_sequence(len(words), block_size):
-                yield self.training_set(words[s])
+        return lambda: map(self.training_set, batched(sample(words, len(words)) if shuffle else words, block_size))
 
-        return sequencer
+
+@dataclass(frozen=True)
+class DataSplit(Generic[IV]):
+    training: list[IV]
+    validation: list[IV]
+    development: list[IV]
+
+    @classmethod
+    def split(cls, data: list[IV], train: float, test: float, dev: float) -> Self:
+        total = train + test + dev
+        train, test, dev = train / total, test / total, dev / total
+        data = sample(data, len(data))
+        train_size, test_size = int(train * len(data)), int(test * len(data))
+        test_end = train_size + test_size
+        return cls(data[:train_size], data[train_size:test_end], data[test_end:])

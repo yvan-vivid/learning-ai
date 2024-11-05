@@ -31,21 +31,6 @@ def traverse_str(xs: Iterable[Optional[str]]) -> Optional[str]:
     return out
 
 
-def block_sequence(size: int, block_size: int) -> Iterator[slice]:
-    if (size := max(size, 0)) == 0:
-        return
-
-    block_size = min(size, block_size)
-    block_count = size // block_size
-    blocks_ub = block_count * block_size
-    for k in range(block_count):
-        block_start = k * block_size
-        block_ub = (k + 1) * block_size
-        yield slice(block_start, block_ub)
-    if blocks_ub < size:
-        yield slice(blocks_ub, None)
-
-
 # Array utilities
 
 
@@ -58,7 +43,7 @@ def sample_index_model(probs: Tensor) -> int:
 
 
 def sample_index_logits(logits: Tensor) -> int:
-    return sample_index_model(logits.softmax(1))
+    return sample_index_model(logits.softmax(-1))
 
 
 def cross_entropy_exp(u: Tensor, y: Tensor) -> Tensor:
