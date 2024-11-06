@@ -13,7 +13,7 @@ from karpathy_series.makemore.models.components.functional import Tanh
 from karpathy_series.makemore.models.components.linear import Linear
 from karpathy_series.makemore.util import sliding_window
 
-from .sequential import SequentialNet
+from .sequential import CalcRecorder, SequentialNet
 
 
 @dataclass(frozen=True)
@@ -41,10 +41,15 @@ class MPLNet(SequentialNet):
         ]
 
     @override
-    def forward(self, xis: Tensor) -> Tensor:
+    def forward(self, xis: Tensor, training: bool = False, record: Optional[CalcRecorder] = None) -> Tensor:
         context_length = self.hidden_net.shape[0]
         w = self.input_net[xis].view(-1, context_length)
         v = w @ self.hidden_net
+        if not training:
+            v_norm = (v - self.batch_mean) / self.batch_std
+            h = tanh(self.hidden_gain * v_norm + self.hidden_bias)
+            return h @ self.output_net + self.output_bias
+
         hidden_mean = v.mean(0, keepdim=True)
         hidden_std = v.std(0, keepdim=True)
         v_norm = (v - hidden_mean) / hidden_std
@@ -53,15 +58,6 @@ class MPLNet(SequentialNet):
             self.batch_mean.data = 0.999 * self.batch_mean + 0.001 * hidden_mean
             self.batch_std.data = 0.999 * self.batch_std + 0.001 * hidden_std
 
-        h = tanh(self.hidden_gain * v_norm + self.hidden_bias)
-        return h @ self.output_net + self.output_bias
-
-    @override
-    def forward_inference(self, xis: Tensor) -> Tensor:
-        context_length = self.hidden_net.shape[0]
-        w = self.input_net[xis].view(-1, context_length)
-        v = w @ self.hidden_net
-        v_norm = (v - self.batch_mean) / self.batch_std
         h = tanh(self.hidden_gain * v_norm + self.hidden_bias)
         return h @ self.output_net + self.output_bias
 
@@ -136,15 +132,14 @@ class MPLNetComponents(SequentialNet):
         return [p for c in self.layers for p in c.parameters()]
 
     @override
-    def forward(self, xis: Tensor, training: bool = True) -> Tensor:
+    def forward(self, xis: Tensor, training: bool = False, record: Optional[CalcRecorder] = None) -> Tensor:
         out = xis
         for layer in self.layers:
             out = layer(out, training)
+            if record is not None:
+                record.record(layer, out)
+                out.retain_grad()
         return out
-
-    @override
-    def forward_inference(self, xis: Tensor) -> Tensor:
-        return self.forward(xis, training=False)
 
     @staticmethod
     def module(fan_in: int, fan_out: int, init_scale: float, generator: Optional[Generator]) -> list[Component]:

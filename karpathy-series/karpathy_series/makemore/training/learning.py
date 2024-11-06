@@ -15,7 +15,7 @@ class Learner:
         for k in range(epochs):
             f_loss = 0.0
             for _n, (xis, yis) in enumerate(training()):
-                self.model.backward(loss := self.model.run(xis, yis))
+                loss = self.model.step(xis, yis)
                 self.model.update(self.lr)
                 losses.append(f_loss := float(loss.item()))
             if (k + 1) % report_epochs == 0:
