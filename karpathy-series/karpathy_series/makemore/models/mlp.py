@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from functools import partial
-from itertools import chain, repeat, starmap
+from itertools import chain
 from typing import Optional, Self, override
 
 from torch import Generator, Tensor
@@ -12,7 +12,6 @@ from karpathy_series.makemore.models.components.flatten import Flatten
 from karpathy_series.makemore.models.components.functional import Tanh
 from karpathy_series.makemore.models.components.linear import Linear
 from karpathy_series.makemore.models.components.sequence import Sequence
-from karpathy_series.makemore.util import sliding_window
 
 from .sequential import SequentialNet
 
@@ -33,8 +32,8 @@ class MPLNet(SequentialNet):
         return self.layers(xis, training, record)
 
     @staticmethod
-    def module(fan_in: int, fan_out: int, init_scale: float, generator: Optional[Generator]) -> list[Component]:
-        return [Linear(fan_in, fan_out, init_scale=init_scale, generator=generator), BatchNorm1d(fan_out), Tanh()]
+    def module(fan_in: int, fan_out: int, init_scale: float, generator: Optional[Generator]) -> tuple[Component, ...]:
+        return (Linear(fan_in, fan_out, init_scale=init_scale, generator=generator), BatchNorm1d(fan_out), Tanh())
 
     @classmethod
     def init(
@@ -48,16 +47,16 @@ class MPLNet(SequentialNet):
     ) -> Self:
         init_scale = 5.0 / 3.0
         context_length = embedding_dims * context_size
-        boundaries = sliding_window(chain((context_length,), repeat(hidden_dims, num_layers)), 2)
         module = partial(cls.module, init_scale=init_scale, generator=generator)
         layers = Sequence(
             list(
                 chain(
                     (Embedding(encoding_size, embedding_dims, generator=generator), Flatten(2)),
-                    chain.from_iterable(starmap(module, boundaries)),
+                    module(context_length, hidden_dims),
+                    chain.from_iterable(module(hidden_dims, hidden_dims) for _ in range(num_layers)),
                     (
-                        Linear(hidden_dims, encoding_size, init_scale=0.01, generator=generator),
-                        BatchNorm1d(encoding_size),
+                        Linear(hidden_dims, encoding_size, generator=generator),
+                        BatchNorm1d(encoding_size, init_scale=0.01),
                     ),
                 )
             )

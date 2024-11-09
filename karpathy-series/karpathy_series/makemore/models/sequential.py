@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from functools import cached_property
 from typing import Optional
 
-from torch import Tensor
+from torch import Tensor, no_grad, tensor
 from torch.nn.functional import cross_entropy
 
 from karpathy_series.makemore.models.components.component import ComponentRecorder
@@ -29,10 +29,15 @@ class SequentialNet(ABC):
             wa.grad = None
         loss.backward()  # type: ignore[no-untyped-call]
 
-    def update(self, lr: float) -> None:
+    def update(self, lr: float) -> Tensor:
+        data_update_ratios: list[float] = []
         for wa in self.parameters():
             if wa.grad is not None:
-                wa.data += -lr * wa.grad
+                update = lr * wa.grad
+                wa.data += -update
+                with no_grad():
+                    data_update_ratios.append((update.std() / wa.data.std()).item())
+        return tensor(data_update_ratios)
 
     def loss(self, u: Tensor, yis: Tensor) -> Tensor:
         return cross_entropy(u, yis)

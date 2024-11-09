@@ -13,10 +13,10 @@ class BatchNorm1d(Component):
     mean: Tensor
     variance: Tensor
 
-    def __init__(self, dim: int, eps: float = 1e-5, momentum: float = 0.1) -> None:
+    def __init__(self, dim: int, eps: float = 1e-5, momentum: float = 0.1, init_scale: float = 1.0) -> None:
         self.eps = eps
         self.momentum = momentum
-        self.gamma = ones(dim).requires_grad_()
+        self.gamma = (ones(dim) * init_scale).requires_grad_()
         self.beta = zeros(dim).requires_grad_()
         self.mean = zeros(dim)
         self.variance = ones(dim)
