@@ -3,7 +3,8 @@ from typing import Optional, Self, override
 
 from torch import Tensor, randn
 
-from karpathy_series.makemore.models.sequential import CalcRecorder, SequentialNet
+from karpathy_series.makemore.models.components.component import ComponentRecorder
+from karpathy_series.makemore.models.sequential import SequentialNet
 
 
 @dataclass(frozen=True)
@@ -15,7 +16,7 @@ class Linear(SequentialNet):
         return [self.wa]
 
     @override
-    def forward(self, xis: Tensor, training: bool = False, record: Optional[CalcRecorder] = None) -> Tensor:
+    def forward(self, xis: Tensor, training: bool = False, record: Optional[ComponentRecorder] = None) -> Tensor:
         return self.wa[xis]
 
     @classmethod

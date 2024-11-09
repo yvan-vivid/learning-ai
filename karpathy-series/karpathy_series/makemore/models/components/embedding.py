@@ -19,7 +19,7 @@ class Embedding(Component):
         self.embedding = (randn(input_size, embedding_dims, generator=generator) * init_factor).requires_grad_()
 
     @override
-    def __call__(self, x: Tensor, _training: bool = False) -> Tensor:
+    def forward(self, x: Tensor, training: bool = False) -> Tensor:
         return self.embedding[x]
 
     @override

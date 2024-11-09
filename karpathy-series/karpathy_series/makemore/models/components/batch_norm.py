@@ -33,16 +33,13 @@ class BatchNorm1d(Component):
     def normalize(self, x: Tensor, mean: Tensor, variance: Tensor) -> Tensor:
         return self.gamma * (x - mean) / sqrt(variance + self.eps) + self.beta
 
-    def forward_training(self, x: Tensor) -> Tensor:
-        self._update_statistics(mean := x.mean(0), variance := x.var(0))
-        return self.normalize(x, mean, variance)
-
-    def forward_inference(self, x: Tensor) -> Tensor:
-        return self.normalize(x, self.mean, self.variance)
-
     @override
-    def __call__(self, x: Tensor, training: bool = False) -> Tensor:
-        return (self.forward_training if training else self.forward_inference)(x)
+    def forward(self, x: Tensor, training: bool = False) -> Tensor:
+        if training:
+            self._update_statistics(mean := x.mean(0), variance := x.var(0))
+            return self.normalize(x, mean, variance)
+        else:
+            return self.normalize(x, self.mean, self.variance)
 
     @override
     def parameters(self) -> list[Tensor]:

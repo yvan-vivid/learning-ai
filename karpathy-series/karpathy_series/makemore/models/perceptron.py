@@ -3,7 +3,8 @@ from typing import Optional, Self, override
 
 from torch import Tensor, randn, tanh
 
-from karpathy_series.makemore.models.sequential import CalcRecorder, SequentialNet
+from karpathy_series.makemore.models.components.component import ComponentRecorder
+from karpathy_series.makemore.models.sequential import SequentialNet
 
 from ..util import sliding_window
 
@@ -18,7 +19,7 @@ class Perceptron(SequentialNet):
         return [self.input_net] + self.hidden_layers
 
     @override
-    def forward(self, xis: Tensor, training: bool = False, record: Optional[CalcRecorder] = None) -> Tensor:
+    def forward(self, xis: Tensor, training: bool = False, record: Optional[ComponentRecorder] = None) -> Tensor:
         m = tanh(self.input_net[xis])
         for wa in self.hidden_layers:
             m = tanh(m @ wa)

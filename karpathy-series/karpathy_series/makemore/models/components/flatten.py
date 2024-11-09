@@ -11,7 +11,7 @@ class Flatten(Component):
     last: int
 
     @override
-    def __call__(self, x: Tensor, _training: bool = False) -> Tensor:
+    def forward(self, x: Tensor, training: bool = False) -> Tensor:
         return x.flatten(x.ndim - self.last)
 
     @override

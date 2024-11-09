@@ -12,7 +12,7 @@ class Functional(Component):
     fun: Callable[[Tensor], Tensor]
 
     @override
-    def __call__(self, x: Tensor, _training: bool = False) -> Tensor:
+    def forward(self, x: Tensor, training: bool = False) -> Tensor:
         return self.fun(x)
 
     @override
@@ -21,7 +21,7 @@ class Functional(Component):
 
     @override
     def describe(self) -> str:
-        return "Functional"
+        return f"Functional {self.fun}"
 
 
 Tanh = partial(Functional, tanh)

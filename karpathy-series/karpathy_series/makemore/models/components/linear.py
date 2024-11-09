@@ -23,7 +23,7 @@ class Linear(Component):
             self.bias = zeros(fan_out).requires_grad_()
 
     @override
-    def __call__(self, x: Tensor, _training: bool = False) -> Tensor:
+    def forward(self, x: Tensor, training: bool = False) -> Tensor:
         out = x @ self.weight
         if (b := self.bias) is not None:
             out += b

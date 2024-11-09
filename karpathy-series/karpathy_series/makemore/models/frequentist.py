@@ -4,7 +4,8 @@ from typing import Iterator, Optional, Self, Tuple, override
 
 from torch import Tensor, int32, zeros
 
-from karpathy_series.makemore.models.sequential import CalcRecorder, SequentialNet
+from karpathy_series.makemore.models.components.component import ComponentRecorder
+from karpathy_series.makemore.models.sequential import SequentialNet
 
 from ..encoding.character import Token
 from ..util import cross_entropy_exp, norm_distro, sample_index_model
@@ -20,7 +21,7 @@ class FreqModel(SequentialNet):
         return [self.counts]
 
     @override
-    def forward(self, xis: Tensor, training: bool = False, record: Optional[CalcRecorder] = None) -> Tensor:
+    def forward(self, xis: Tensor, training: bool = False, record: Optional[ComponentRecorder] = None) -> Tensor:
         return self.counts[xis].float()
 
     @override
