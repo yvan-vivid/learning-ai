@@ -43,21 +43,28 @@ class MPLNet(SequentialNet):
         embedding_dims: int,
         context_size: int,
         hidden_dims: int,
-        generator: Optional[Generator],
+        norm_final_layer: bool = True,
+        generator: Optional[Generator] = None,
     ) -> Self:
         init_scale = 5.0 / 3.0
         context_length = embedding_dims * context_size
         module = partial(cls.module, init_scale=init_scale, generator=generator)
+        output_layer = (
+            (
+                Linear(hidden_dims, encoding_size, generator=generator),
+                BatchNorm1d(encoding_size, init_scale=0.01),
+            )
+            if norm_final_layer
+            else (Linear(hidden_dims, encoding_size, init_scale=0.01, generator=generator),)
+        )
+
         layers = Sequence(
             list(
                 chain(
                     (Embedding(encoding_size, embedding_dims, generator=generator), Flatten(2)),
                     module(context_length, hidden_dims),
-                    chain.from_iterable(module(hidden_dims, hidden_dims) for _ in range(num_layers)),
-                    (
-                        Linear(hidden_dims, encoding_size, generator=generator),
-                        BatchNorm1d(encoding_size, init_scale=0.01),
-                    ),
+                    chain.from_iterable(module(hidden_dims, hidden_dims) for _ in range(num_layers - 1)),
+                    output_layer,
                 )
             )
         )
