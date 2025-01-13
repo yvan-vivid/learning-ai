@@ -2,10 +2,10 @@ from typing import Optional, override
 
 from torch import Generator, Tensor, randn
 
-from karpathy_series.makemore.models.components.component import Component
+from karpathy_series.makemore.models.components.component import BaseComponent
 
 
-class Embedding(Component):
+class Embedding(BaseComponent):
     embedding: Tensor
 
     def __init__(

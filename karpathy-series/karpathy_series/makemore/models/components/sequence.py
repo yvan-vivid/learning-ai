@@ -12,10 +12,6 @@ class Sequence(Component):
     layers: list[Component]
 
     @override
-    def forward(self, x: Tensor, training: bool = False) -> Tensor:
-        return NotImplemented
-
-    @override
     def __call__(self, x: Tensor, training: bool = False, record: Optional[ComponentRecorder] = None) -> Tensor:
         out = x
         for layer in self.layers:

@@ -2,10 +2,10 @@ from typing import override
 
 from torch import Tensor, no_grad, ones, sqrt, zeros
 
-from karpathy_series.makemore.models.components.component import Component
+from karpathy_series.makemore.models.components.component import BaseComponent
 
 
-class BatchNorm1d(Component):
+class BatchNorm1d(BaseComponent):
     eps: float
     momentum: float
     gamma: Tensor
