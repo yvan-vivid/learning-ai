@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 from functools import cached_property
 from itertools import product
-from typing import FrozenSet, Iterable, List, Optional, Self, Tuple, TypeAlias, override
+from typing import FrozenSet, Iterable, Optional, Self, override
 
 from ..util import traverse_list, traverse_str
 from .abstract import Encoder, TabularEncoder
 
-Token: TypeAlias = int
+type Token = int
 
 
 @dataclass(frozen=True)
@@ -15,7 +15,7 @@ class CharacterSet:
     pad: str
 
     @cached_property
-    def complete(self) -> List[str]:
+    def complete(self) -> list[str]:
         return [self.pad] + sorted(self.under)
 
     @classmethod
@@ -31,20 +31,20 @@ class CharacterEncoder(TabularEncoder[Token, str]):
 
 
 @dataclass(frozen=True)
-class BiCharacterEncoder(TabularEncoder[Token, Tuple[str, str]]):
+class BiCharacterEncoder(TabularEncoder[Token, tuple[str, str]]):
     @classmethod
     def from_charset(cls, character_set: CharacterSet) -> Self:
         return cls.from_pairs(enumerate(product(character_set.complete, character_set.complete)))
 
 
 @dataclass(frozen=True)
-class StringEncoder(Encoder[List[Token], str]):
+class StringEncoder(Encoder[list[Token], str]):
     item_encoder: CharacterEncoder
 
     @override
-    def encode(self, letter: str) -> Optional[List[Token]]:
+    def encode(self, letter: str) -> Optional[list[Token]]:
         return traverse_list(map(self.item_encoder.encode, letter))
 
     @override
-    def decode(self, t: List[Token]) -> Optional[str]:
+    def decode(self, t: list[Token]) -> Optional[str]:
         return traverse_str(map(self.item_encoder.decode, t))

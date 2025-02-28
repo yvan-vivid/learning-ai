@@ -1,14 +1,11 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Generic, Iterable, Optional, Self, Tuple, TypeVar, override
+from typing import Iterable, Optional, Self, override
 
 from ..util import traverse_list
 
-L = TypeVar("L")
-T = TypeVar("T")
 
-
-class Encoder(ABC, Generic[T, L]):
+class Encoder[T, L](ABC):
     size: int
 
     @abstractmethod
@@ -35,7 +32,7 @@ class Encoder(ABC, Generic[T, L]):
 
 
 @dataclass(frozen=True)
-class TabularEncoder(Generic[T, L], Encoder[T, L]):
+class TabularEncoder[T, L](Encoder[T, L]):
     forward: dict[L, T]
     reverse: dict[T, L]
     size: int
@@ -49,7 +46,7 @@ class TabularEncoder(Generic[T, L], Encoder[T, L]):
         return self.reverse.get(t)
 
     @classmethod
-    def from_pairs(cls, token_letter_pairs: Iterable[Tuple[T, L]]) -> Self:
+    def from_pairs(cls, token_letter_pairs: Iterable[tuple[T, L]]) -> Self:
         forward: dict[L, T] = dict()
         reverse: dict[T, L] = dict()
         for token, letter in token_letter_pairs:

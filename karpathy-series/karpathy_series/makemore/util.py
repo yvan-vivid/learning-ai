@@ -1,19 +1,17 @@
 from itertools import islice, tee
-from typing import Iterable, Iterator, Optional, Tuple, TypeVar
+from typing import Iterable, Iterator, Optional
 
 from torch import Tensor, multinomial
 
-V = TypeVar("V")
 
-
-def sliding_window(itb: Iterable[V], n: int) -> Iterator[Tuple[V, ...]]:
+def sliding_window[V](itb: Iterable[V], n: int) -> Iterator[tuple[V, ...]]:
     its = tee(itb, n)
     for i, it in enumerate(its):
         _ = next(islice(it, i, i), None)
     return zip(*its)
 
 
-def traverse_list(xs: Iterable[Optional[V]]) -> Optional[list[V]]:
+def traverse_list[V](xs: Iterable[Optional[V]]) -> Optional[list[V]]:
     out: list[V] = []
     for x in xs:
         if x is None:

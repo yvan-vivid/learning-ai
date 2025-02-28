@@ -1,24 +1,20 @@
 from dataclasses import dataclass
 from itertools import batched
 from random import sample
-from typing import Callable, Generic, Iterable, Self, Sequence, Tuple, TypeAlias, TypeVar
+from typing import Callable, Iterable, Self, Sequence, Tuple
 
 from torch import Tensor, tensor
 
 from ..encoding.abstract import Encoder
 from ..encoding.character import Token
 
-IV = TypeVar("IV")
-OV = TypeVar("OV")
-IT = TypeVar("IT", bound=Token | list[Token])
-
-TrainingSet: TypeAlias = Tuple[Tensor, Tensor]
-TrainingSequence: TypeAlias = Callable[[], Iterable[TrainingSet]]
-TrainingItemGenerator: TypeAlias = Callable[[str], Iterable[Tuple[IV, OV]]]
+type TrainingSet = Tuple[Tensor, Tensor]
+type TrainingSequence = Callable[[], Iterable[TrainingSet]]
+type TrainingItemGenerator[IV, OV] = Callable[[str], Iterable[Tuple[IV, OV]]]
 
 
 @dataclass(frozen=True)
-class TrainingSequencer(Generic[IV, OV, IT]):
+class TrainingSequencer[IV, OV, IT: Token | list[Token]]:
     in_encoder: Encoder[IT, IV]
     out_encoder: Encoder[Token, OV]
     generator: TrainingItemGenerator[IV, OV]
@@ -37,7 +33,7 @@ class TrainingSequencer(Generic[IV, OV, IT]):
 
 
 @dataclass(frozen=True)
-class DataSplit(Generic[IV]):
+class DataSplit[IV]:
     training: list[IV]
     validation: list[IV]
     development: list[IV]

@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import Iterable, Optional, TypeAlias, override
+from typing import Iterable, Optional, override
 
 from torch import Tensor
 
 from karpathy_series.makemore.models.recorder import Recorder
 
-ComponentRecorder: TypeAlias = Recorder["Component"]
+type ComponentRecorder = Recorder[Component]
 
 
 class Component(ABC):

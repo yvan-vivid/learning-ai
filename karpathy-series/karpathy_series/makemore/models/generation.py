@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from functools import cached_property, partial
-from typing import Callable, Tuple, TypeVar
+from typing import Callable
 
 from torch import tensor
 
@@ -8,10 +8,8 @@ from karpathy_series.makemore.encoding.abstract import Encoder
 from karpathy_series.makemore.encoding.character import CharacterSet, Token
 from karpathy_series.makemore.models.sequential import SequentialNet
 
-V = TypeVar("V")
 
-
-def generate_string(
+def generate_string[V](
     feedback: Callable[[V], Callable[[str], V]],
     forward: Callable[[V], str],
     initial: V,
@@ -28,7 +26,7 @@ def generate_string(
     return out
 
 
-def feedbacker(update: Callable[[V, str], V], initial: V) -> Callable[[str], V]:
+def feedbacker[V](update: Callable[[V, str], V], initial: V) -> Callable[[str], V]:
     state = initial
 
     def _inner(c: str) -> V:
@@ -43,7 +41,7 @@ def _n_gram_update(state: str, c: str) -> str:
     return state[1:] + c
 
 
-def _tri_gram_update(state: Tuple[str, str], c: str) -> Tuple[str, str]:
+def _tri_gram_update(state: tuple[str, str], c: str) -> tuple[str, str]:
     return state[1], c
 
 

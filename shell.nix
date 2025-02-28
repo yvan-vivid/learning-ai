@@ -1,5 +1,4 @@
-{ pkgs ? import <nixpkgs> {} }:
-
+{pkgs ? import <nixpkgs> {}}:
 pkgs.mkShell {
   buildInputs = [
     pkgs.python312
@@ -7,7 +6,11 @@ pkgs.mkShell {
     pkgs.poethepoet
     pkgs.poetry
     pkgs.stdenv
+    pkgs.basedpyright
+    pkgs.ruff
+    pkgs.ruff-lsp
+    pkgs.graphviz
   ];
-  
+
   LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";
 }

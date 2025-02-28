@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from itertools import product
-from typing import Iterator, Optional, Self, Tuple, override
+from typing import Iterator, Optional, Self, override
 
 from torch import Tensor, int32, zeros
 
@@ -37,7 +37,7 @@ class FreqModel(SequentialNet):
         for xi, yi in zip(list(xis), list(yis)):
             self.counts[xi, yi] += 1
 
-    def items(self) -> Iterator[Tuple[Token, Token, int]]:
+    def items(self) -> Iterator[tuple[Token, Token, int]]:
         for i, j in product(range(self.encoding_size), range(self.encoding_size)):
             yield i, j, int(self.counts[i, j].item())
 
