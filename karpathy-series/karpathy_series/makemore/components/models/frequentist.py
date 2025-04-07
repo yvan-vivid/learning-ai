@@ -1,36 +1,36 @@
+from collections.abc import Iterator
 from dataclasses import dataclass
 from itertools import product
-from typing import Iterator, Optional, Self, override
+from typing import Self, override
 
 from torch import Tensor, int32, zeros
 
-from karpathy_series.makemore.models.components.component import ComponentRecorder
-from karpathy_series.makemore.models.sequential import SequentialNet
-
-from ..encoding.character import Token
-from ..util import cross_entropy_exp, norm_distro, sample_index_model
+from karpathy_series.makemore.components.models.model import Model
+from karpathy_series.makemore.components.neuro.component import ComponentRecording
+from karpathy_series.makemore.encoding.character import Token
+from karpathy_series.makemore.util import norm_distro, sample_index_model
 
 
 @dataclass(frozen=True)
-class FreqModel(SequentialNet):
+class FreqModel(Model):
     encoding_size: int
     counts: Tensor
+
+    @override
+    def describe(self) -> str:
+        return "A frequency table model"
 
     @override
     def parameters(self) -> list[Tensor]:
         return [self.counts]
 
     @override
-    def forward(self, xis: Tensor, training: bool = False, record: Optional[ComponentRecorder] = None) -> Tensor:
-        return self.counts[xis].float()
+    def __call__(self, x: Tensor, training: bool = False, recorder: ComponentRecording = None) -> Tensor:
+        return self.counts[x].float()
 
     @override
-    def loss(self, u: Tensor, yis: Tensor) -> Tensor:
-        return cross_entropy_exp(u, yis)
-
-    @override
-    def generate(self, xi: Tensor) -> Token:
-        return sample_index_model(norm_distro(self.forward(xi), -1))
+    def generate(self, x: Tensor) -> Token:
+        return sample_index_model(norm_distro(self(x), -1))
 
     def train(self, xis: Tensor, yis: Tensor) -> None:
         assert xis.shape == yis.shape

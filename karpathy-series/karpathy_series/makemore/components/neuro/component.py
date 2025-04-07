@@ -1,16 +1,18 @@
 from abc import ABC, abstractmethod
-from typing import Iterable, Optional, override
+from collections.abc import Iterable
+from typing import override
 
 from torch import Tensor
 
-from karpathy_series.makemore.models.recorder import Recorder
+from karpathy_series.makemore.components.recorder import Recorder
 
 type ComponentRecorder = Recorder[Component]
+type ComponentRecording = ComponentRecorder | None
 
 
 class Component(ABC):
     @abstractmethod
-    def __call__(self, x: Tensor, training: bool = False, record: Optional[ComponentRecorder] = None) -> Tensor:
+    def __call__(self, x: Tensor, training: bool = False, record: ComponentRecording = None) -> Tensor:
         """Run component with `training` flag and optional `record` recorder."""
         ...
 
@@ -36,10 +38,10 @@ class BaseComponent(Component, ABC):
         ...
 
     @override
-    def __call__(self, x: Tensor, training: bool = False, record: Optional[ComponentRecorder] = None) -> Tensor:
+    def __call__(self, x: Tensor, training: bool = False, record: ComponentRecording = None) -> Tensor:
         """Run `forward` and record output if passed a recorder."""
         out = self.forward(x, training)
         if record is not None:
-            record.record(self, out)
+            record(self, out)
             out.retain_grad()
         return out

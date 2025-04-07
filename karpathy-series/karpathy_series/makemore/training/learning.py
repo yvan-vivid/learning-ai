@@ -3,9 +3,9 @@ from typing import Self
 
 from torch import Tensor, tensor
 
-from ..models.frequentist import FreqModel
-from ..models.sequential import SequentialNet
-from .data import TrainingSequence
+from karpathy_series.makemore.components.models.frequentist import FreqModel
+from karpathy_series.makemore.components.models.model import Model
+from karpathy_series.makemore.training.data import TrainingSequence
 
 
 @dataclass(frozen=True)
@@ -29,7 +29,7 @@ class LearningRecord:
 
 @dataclass(frozen=True)
 class Learner:
-    model: SequentialNet
+    model: Model
     lr: float
 
     def __call__(self, training: TrainingSequence, epochs: int = 1, report_epochs: int = 10) -> LearningRecord:

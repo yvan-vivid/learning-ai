@@ -4,7 +4,7 @@ from typing import Callable, override
 
 from torch import Tensor, tanh
 
-from karpathy_series.makemore.models.components.component import BaseComponent
+from karpathy_series.makemore.components.neuro.component import BaseComponent
 
 
 @dataclass(frozen=True)

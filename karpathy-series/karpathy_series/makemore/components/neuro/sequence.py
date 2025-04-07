@@ -1,10 +1,11 @@
+from collections.abc import Iterable
 from dataclasses import dataclass
 from itertools import chain
-from typing import Iterable, Optional, override
+from typing import override
 
 from torch import Tensor
 
-from karpathy_series.makemore.models.components.component import Component, ComponentRecorder
+from karpathy_series.makemore.components.neuro.component import Component, ComponentRecording
 
 
 @dataclass(frozen=True)
@@ -12,7 +13,7 @@ class Sequence(Component):
     layers: list[Component]
 
     @override
-    def __call__(self, x: Tensor, training: bool = False, record: Optional[ComponentRecorder] = None) -> Tensor:
+    def __call__(self, x: Tensor, training: bool = False, record: ComponentRecording = None) -> Tensor:
         out = x
         for layer in self.layers:
             out = layer(out, training=training, record=record)

@@ -1,7 +1,7 @@
 from torch import Generator, float32, tensor
 from torch.testing import assert_close
 
-from karpathy_series.makemore.models.components.linear import Linear
+from karpathy_series.makemore.components.neuro.linear import Linear
 
 GENERATOR = Generator().manual_seed(123)
 

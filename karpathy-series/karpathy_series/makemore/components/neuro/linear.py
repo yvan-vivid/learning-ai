@@ -2,7 +2,7 @@ from typing import Optional, override
 
 from torch import Generator, Tensor, randn, zeros
 
-from karpathy_series.makemore.models.components.component import BaseComponent
+from karpathy_series.makemore.components.neuro.component import BaseComponent
 
 
 class Linear(BaseComponent):
@@ -15,7 +15,7 @@ class Linear(BaseComponent):
         fan_out: int,
         bias: bool = True,
         init_scale: float = 1.0,
-        generator: Optional[Generator] = None,
+        generator: Generator | None = None,
     ) -> None:
         init_factor: float = init_scale * fan_in**-0.5
         self.weight = (randn(fan_in, fan_out, generator=generator) * init_factor).requires_grad_()

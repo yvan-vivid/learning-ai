@@ -1,15 +1,14 @@
 from dataclasses import dataclass
-from typing import Optional, Self, override
+from typing import Self, override
 
 from torch import Generator, Tensor, no_grad, ones, randn, tanh, zeros
 
-from karpathy_series.makemore.models.components.component import ComponentRecorder
-
-from .sequential import SequentialNet
+from karpathy_series.makemore.components.models.model import Model
+from karpathy_series.makemore.components.neuro.component import ComponentRecording
 
 
 @dataclass(frozen=True)
-class MPLNet(SequentialNet):
+class MPLNet(Model):
     input_net: Tensor
     hidden_net: Tensor
     hidden_gain: Tensor
@@ -20,6 +19,10 @@ class MPLNet(SequentialNet):
 
     batch_mean: Tensor
     batch_std: Tensor
+
+    @override
+    def describe(self) -> str:
+        return "An MLP model built without components"
 
     @override
     def parameters(self) -> list[Tensor]:
@@ -33,9 +36,9 @@ class MPLNet(SequentialNet):
         ]
 
     @override
-    def forward(self, xis: Tensor, training: bool = False, record: Optional[ComponentRecorder] = None) -> Tensor:
+    def __call__(self, x: Tensor, training: bool = False, record: ComponentRecording = None) -> Tensor:
         context_length = self.hidden_net.shape[0]
-        w = self.input_net[xis].view(-1, context_length)
+        w = self.input_net[x].view(-1, context_length)
         v = w @ self.hidden_net
         if not training:
             v_norm = (v - self.batch_mean) / self.batch_std
@@ -81,7 +84,7 @@ class MPLNet(SequentialNet):
         context_size: int,
         embedding_dims: int,
         hidden_dims: int,
-        generator: Optional[Generator],
+        generator: Generator | None,
     ) -> Self:
         context_length = context_size * embedding_dims
         return cls.init(
@@ -99,7 +102,7 @@ class MPLNet(SequentialNet):
         context_size: int,
         embedding_dims: int,
         hidden_dims: int,
-        generator: Optional[Generator],
+        generator: Generator | None,
     ) -> Self:
         context_length = context_size * embedding_dims
         hidden_factor: float = (5.0 / 3.0) * (float(context_length) ** -0.5)

@@ -3,7 +3,7 @@ from typing import override
 
 from torch import Tensor
 
-from karpathy_series.makemore.models.components.component import BaseComponent
+from karpathy_series.makemore.components.neuro.component import BaseComponent
 
 
 @dataclass(frozen=True)

@@ -3,33 +3,28 @@ from functools import partial
 from itertools import chain
 from typing import Optional, Self, override
 
-from torch import Generator, Tensor
+from torch import Generator
 
-from karpathy_series.makemore.models.components.batch_norm import BatchNorm1d
-from karpathy_series.makemore.models.components.component import Component, ComponentRecorder
-from karpathy_series.makemore.models.components.embedding import Embedding
-from karpathy_series.makemore.models.components.flatten import Flatten
-from karpathy_series.makemore.models.components.functional import Tanh
-from karpathy_series.makemore.models.components.linear import Linear
-from karpathy_series.makemore.models.components.sequence import Sequence
-
-from .sequential import SequentialNet
+from karpathy_series.makemore.components.models.model import SequentialModel
+from karpathy_series.makemore.components.neuro.batch_norm import BatchNorm1d
+from karpathy_series.makemore.components.neuro.component import Component
+from karpathy_series.makemore.components.neuro.embedding import Embedding
+from karpathy_series.makemore.components.neuro.flatten import Flatten
+from karpathy_series.makemore.components.neuro.functional import Tanh
+from karpathy_series.makemore.components.neuro.linear import Linear
+from karpathy_series.makemore.components.neuro.sequence import Sequence
 
 
 @dataclass(frozen=True)
-class MPLNet(SequentialNet):
+class MPLNet(SequentialModel):
     layers: Sequence
     encoding_size: int
     embedding_dims: int
     context_size: int
 
     @override
-    def parameters(self) -> list[Tensor]:
-        return list(self.layers.parameters())
-
-    @override
-    def forward(self, xis: Tensor, training: bool = False, record: Optional[ComponentRecorder] = None) -> Tensor:
-        return self.layers(xis, training, record)
+    def describe(self) -> str:
+        return "An MLP model"
 
     @staticmethod
     def module(fan_in: int, fan_out: int, init_scale: float, generator: Optional[Generator]) -> tuple[Component, ...]:

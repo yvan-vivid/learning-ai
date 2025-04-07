@@ -1,25 +1,28 @@
 from dataclasses import dataclass
-from typing import Optional, Self, override
+from typing import Self, override
 
 from torch import Tensor, randn, tanh
 
-from karpathy_series.makemore.models.components.component import ComponentRecorder
-from karpathy_series.makemore.models.sequential import SequentialNet
-
-from ..util import sliding_window
+from karpathy_series.makemore.components.models.model import Model
+from karpathy_series.makemore.components.neuro.component import ComponentRecording
+from karpathy_series.makemore.util import sliding_window
 
 
 @dataclass(frozen=True)
-class Perceptron(SequentialNet):
+class Perceptron(Model):
     input_net: Tensor
     hidden_layers: list[Tensor]
+
+    @override
+    def describe(self) -> str:
+        return "A simple perceptron model"
 
     @override
     def parameters(self) -> list[Tensor]:
         return [self.input_net] + self.hidden_layers
 
     @override
-    def forward(self, xis: Tensor, training: bool = False, record: Optional[ComponentRecorder] = None) -> Tensor:
+    def __call__(self, xis: Tensor, training: bool = False, record: ComponentRecording = None) -> Tensor:
         m = tanh(self.input_net[xis])
         for wa in self.hidden_layers:
             m = tanh(m @ wa)

@@ -1,8 +1,8 @@
-from typing import Optional, override
+from typing import override
 
 from torch import Generator, Tensor, randn
 
-from karpathy_series.makemore.models.components.component import BaseComponent
+from karpathy_series.makemore.components.neuro.component import BaseComponent
 
 
 class Embedding(BaseComponent):
@@ -13,7 +13,7 @@ class Embedding(BaseComponent):
         input_size: int,
         embedding_dims: int,
         init_scale: float = 1.0,
-        generator: Optional[Generator] = None,
+        generator: Generator | None = None,
     ) -> None:
         init_factor: float = init_scale * input_size**-0.5
         self.embedding = (randn(input_size, embedding_dims, generator=generator) * init_factor).requires_grad_()

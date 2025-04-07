@@ -4,9 +4,9 @@ from typing import Callable
 
 from torch import tensor
 
+from karpathy_series.makemore.components.models.model import Model
 from karpathy_series.makemore.encoding.abstract import Encoder
 from karpathy_series.makemore.encoding.character import CharacterSet, Token
-from karpathy_series.makemore.models.sequential import SequentialNet
 
 
 def generate_string[V](
@@ -54,7 +54,7 @@ tri_gram_generate = partial(generate_string, partial(feedbacker, _tri_gram_updat
 class BiGramNetGenerator:
     charset: CharacterSet
     encoder: Encoder[Token, str]
-    net: SequentialNet
+    net: Model
 
     @cached_property
     def generator(self) -> Callable[[int], str]:
@@ -73,7 +73,7 @@ class TriGramNetGenerator:
     charset: CharacterSet
     in_encoder: Encoder[Token, tuple[str, str]]
     out_encoder: Encoder[Token, str]
-    net: SequentialNet
+    net: Model
 
     @cached_property
     def generator(self) -> Callable[[int], str]:
@@ -92,7 +92,7 @@ class NGramNetGenerator:
     charset: CharacterSet
     in_encoder: Encoder[list[Token], str]
     out_encoder: Encoder[Token, str]
-    net: SequentialNet
+    net: Model
 
     @cached_property
     def generator(self) -> Callable[[int], str]:

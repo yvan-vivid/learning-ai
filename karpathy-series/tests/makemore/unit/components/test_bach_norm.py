@@ -1,7 +1,7 @@
 from torch import float32, tensor
 from torch.testing import assert_close
 
-from karpathy_series.makemore.models.components.batch_norm import BatchNorm1d
+from karpathy_series.makemore.components.neuro.batch_norm import BatchNorm1d
 
 TEST_IN = tensor([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=float32)
 TEST_OUT_TRAIN = tensor([[-1.0, -1.0], [0.0, 0.0], [1.0, 1.0]], dtype=float32)

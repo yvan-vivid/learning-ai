@@ -2,7 +2,7 @@ from typing import override
 
 from torch import Tensor, no_grad, ones, sqrt, zeros
 
-from karpathy_series.makemore.models.components.component import BaseComponent
+from karpathy_series.makemore.components.neuro.component import BaseComponent
 
 
 class BatchNorm1d(BaseComponent):
