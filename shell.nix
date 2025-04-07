@@ -10,6 +10,7 @@ pkgs.mkShell {
     pkgs.ruff
     pkgs.ruff-lsp
     pkgs.graphviz
+    pkgs.uv
   ];
 
   LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";
