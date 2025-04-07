@@ -8,6 +8,12 @@ from karpathy_series.makemore.models.components.component import BaseComponent
 
 @dataclass(frozen=True)
 class Flatten(BaseComponent):
+    """
+    `Flatten(d)` flattens the `last` dimension of an array
+    For instance, last = 1, will not flatten anything,
+    while last = 3, will flatten the last 3 dimensions.
+    """
+
     last: int
 
     @override

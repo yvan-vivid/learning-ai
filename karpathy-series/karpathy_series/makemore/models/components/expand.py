@@ -8,6 +8,13 @@ from karpathy_series.makemore.models.components.component import BaseComponent
 
 @dataclass(frozen=True)
 class Expand(BaseComponent):
+    """
+    `Expand(d, w)` expands the `d`th dimension of an array into batches of size `w`
+    The shape will go from `(..., n_d, ...)` to `(..., b, w, ...)`
+        where `n_d = b * w`
+    If the constraint is not met, `forward` will throw an exception
+    """
+
     dim: int
     width: int
 

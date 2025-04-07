@@ -37,9 +37,7 @@ class BaseComponent(Component, ABC):
 
     @override
     def __call__(self, x: Tensor, training: bool = False, record: Optional[ComponentRecorder] = None) -> Tensor:
-        """
-        Run `forward` and record output if passed a recorder.
-        """
+        """Run `forward` and record output if passed a recorder."""
         out = self.forward(x, training)
         if record is not None:
             record.record(self, out)
