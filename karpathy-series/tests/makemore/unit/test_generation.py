@@ -1,6 +1,6 @@
 from typing import Tuple
 
-from karpathy_series.makemore.models.generation import bi_gram_generate, n_gram_generate, tri_gram_generate
+from karpathy_series.makemore.components.generation import bi_gram_generate, n_gram_generate, tri_gram_generate
 
 
 def forward_bigram(iv: str) -> str:
