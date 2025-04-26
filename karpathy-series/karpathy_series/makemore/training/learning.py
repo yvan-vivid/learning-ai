@@ -1,10 +1,9 @@
 from dataclasses import dataclass, field
 from typing import Self
 
-from torch import Tensor, tensor
+from torch import Tensor, no_grad, tensor
 
-from karpathy_series.makemore.components.models.frequentist import FreqModel
-from karpathy_series.makemore.components.models.model import Model
+from karpathy_series.makemore.components.models.model import FreqModel, NetModel
 from karpathy_series.makemore.training.data import TrainingSequence
 
 
@@ -29,16 +28,27 @@ class LearningRecord:
 
 @dataclass(frozen=True)
 class Learner:
-    model: Model
+    model: NetModel
     lr: float
+
+    def update(self, lr: float) -> Tensor:
+        data_update_ratios: list[float] = []
+        for wa in self.model.component.parameters():
+            if wa.grad is not None:
+                update = lr * wa.grad
+                wa.data += -update
+                with no_grad():
+                    data_update_ratios.append((update.std() / wa.data.std()).item())
+        return tensor(data_update_ratios)
 
     def __call__(self, training: TrainingSequence, epochs: int = 1, report_epochs: int = 10) -> LearningRecord:
         record = LearningRecord()
         for k in range(epochs):
             loss = tensor(())
             for _n, (xis, yis) in enumerate(training()):
-                loss = self.model.step(xis, yis)
-                update_ratios = self.model.update(self.lr)
+                loss = self.model.run(xis, yis, training=True)
+                self.model.backward(loss)
+                update_ratios = self.update(self.lr)
                 record.record(loss, update_ratios)
             if (k + 1) % report_epochs == 0:
                 print(f"Epoch {k + 1} is finished with loss = {float(loss.item()): 0.4f}")
@@ -49,9 +59,15 @@ class Learner:
 class FreqLearner:
     model: FreqModel
 
+    def train(self, xis: Tensor, yis: Tensor) -> None:
+        assert xis.shape == yis.shape
+        for xi, yi in zip(list(xis), list(yis)):
+            self.model.counts[xi, yi] += 1
+
     def __call__(self, training: TrainingSequence) -> list[float]:
         losses: list[float] = []
         for _n, (xis, yis) in enumerate(training()):
-            self.model.train(xis, yis)
-            losses.append(float(self.model.run(xis, yis).item()))
+            loss = self.model.run(xis, yis)
+            losses.append(loss.item())
+            self.train(xis, yis)
         return losses

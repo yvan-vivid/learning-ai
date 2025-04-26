@@ -5,7 +5,6 @@ from typing import Optional, Self, override
 
 from torch import Generator
 
-from karpathy_series.makemore.components.models.model import SequentialModel
 from karpathy_series.makemore.components.neuro.batch_norm import BatchNorm1d
 from karpathy_series.makemore.components.neuro.component import Component
 from karpathy_series.makemore.components.neuro.embedding import Embedding
@@ -16,11 +15,9 @@ from karpathy_series.makemore.components.neuro.sequence import Sequence
 
 
 @dataclass(frozen=True)
-class MPLNet(SequentialModel):
-    layers: Sequence
+class MPLNet(Sequence):
     encoding_size: int
     embedding_dims: int
-    context_size: int
 
     @override
     def describe(self) -> str:
@@ -53,20 +50,13 @@ class MPLNet(SequentialModel):
             else (Linear(hidden_dims, encoding_size, init_scale=0.01, generator=generator),)
         )
 
-        layers = Sequence(
-            list(
-                chain(
-                    (Embedding(encoding_size, embedding_dims, generator=generator), Flatten(2)),
-                    module(context_length, hidden_dims),
-                    chain.from_iterable(module(hidden_dims, hidden_dims) for _ in range(num_layers - 1)),
-                    output_layer,
-                )
+        layers = list(
+            chain(
+                (Embedding(encoding_size, embedding_dims, generator=generator), Flatten(2)),
+                module(context_length, hidden_dims),
+                chain.from_iterable(module(hidden_dims, hidden_dims) for _ in range(num_layers - 1)),
+                output_layer,
             )
         )
 
-        return cls(
-            layers,
-            encoding_size,
-            embedding_dims,
-            context_size,
-        )
+        return cls(layers, encoding_size, embedding_dims)

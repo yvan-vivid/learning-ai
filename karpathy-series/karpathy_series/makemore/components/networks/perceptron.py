@@ -3,13 +3,12 @@ from typing import Self, override
 
 from torch import Tensor, randn, tanh
 
-from karpathy_series.makemore.components.models.model import Model
-from karpathy_series.makemore.components.neuro.component import ComponentRecording
+from karpathy_series.makemore.components.neuro.component import BaseComponent
 from karpathy_series.makemore.util import sliding_window
 
 
 @dataclass(frozen=True)
-class Perceptron(Model):
+class Perceptron(BaseComponent):
     input_net: Tensor
     hidden_layers: list[Tensor]
 
@@ -22,8 +21,8 @@ class Perceptron(Model):
         return [self.input_net] + self.hidden_layers
 
     @override
-    def __call__(self, xis: Tensor, training: bool = False, record: ComponentRecording = None) -> Tensor:
-        m = tanh(self.input_net[xis])
+    def forward(self, x: Tensor, training: bool = False) -> Tensor:
+        m = tanh(self.input_net[x])
         for wa in self.hidden_layers:
             m = tanh(m @ wa)
         return m

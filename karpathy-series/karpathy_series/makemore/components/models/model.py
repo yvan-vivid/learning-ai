@@ -1,54 +1,55 @@
-from abc import ABC
-from typing import override
+from dataclasses import dataclass
+from itertools import product
+from typing import Iterator, Self
 
-from torch import Tensor, no_grad, tensor
-from torch.nn.functional import cross_entropy
+from torch import Tensor, int32, zeros
 
+from karpathy_series.makemore.components.function.loss import CrossEntropyExpLoss, Loss
 from karpathy_series.makemore.components.neuro.component import Component, ComponentRecording
-from karpathy_series.makemore.components.neuro.sequence import Sequence
 from karpathy_series.makemore.encoding.character import Token
-from karpathy_series.makemore.util import sample_index_logits
+from karpathy_series.makemore.util import norm_distro, sample_index_logits, sample_index_model
 
 
-class Model(Component, ABC):
-    context_size: int
+@dataclass(frozen=True)
+class NetModel:
+    component: Component
+    loss: Loss
+
+    def run(self, x: Tensor, y: Tensor, training: bool = True, record: ComponentRecording = None) -> Tensor:
+        """N[s] x M[s] => L"""
+        return self.loss(self.component(x, training=training, record=record), y)
 
     def backward(self, loss: Tensor) -> None:
-        for wa in self.parameters():
+        for wa in self.component.parameters():
             wa.grad = None
         loss.backward()  # type: ignore[no-untyped-call]
 
-    def update(self, lr: float) -> Tensor:
-        data_update_ratios: list[float] = []
-        for wa in self.parameters():
-            if wa.grad is not None:
-                update = lr * wa.grad
-                wa.data += -update
-                with no_grad():
-                    data_update_ratios.append((update.std() / wa.data.std()).item())
-        return tensor(data_update_ratios)
+    def generate(self, x: Tensor) -> Token:
+        return sample_index_logits(self.component(x))
 
-    def loss(self, u: Tensor, y: Tensor) -> Tensor:
-        return cross_entropy(u, y)
 
-    def run(self, x: Tensor, y: Tensor, training: bool = True, record: ComponentRecording = None) -> Tensor:
-        return self.loss(self(x, training=training, record=record), y)
+@dataclass(frozen=True)
+class FreqModel:
+    encoding_size: int
+    counts: Tensor
+    loss: Loss
 
-    def step(self, x: Tensor, y: Tensor, record: ComponentRecording = None) -> Tensor:
-        self.backward(loss := self.run(x, y, training=True, record=record))
-        return loss
+    def forward(self, x: Tensor) -> Tensor:
+        return self.counts[x].float()
+
+    def run(self, x: Tensor, y: Tensor) -> Tensor:
+        """N[s] x M[s] => L"""
+        return self.loss(self.forward(x), y)
 
     def generate(self, x: Tensor) -> Token:
-        return sample_index_logits(self(x))
+        return sample_index_model(norm_distro(self.forward(x), -1))
 
+    def items(self) -> Iterator[tuple[Token, Token, int]]:
+        for i, j in product(range(self.encoding_size), range(self.encoding_size)):
+            yield i, j, int(self.counts[i, j].item())
 
-class SequentialModel(Model, ABC):
-    layers: Sequence
-
-    @override
-    def parameters(self) -> list[Tensor]:
-        return list(self.layers.parameters())
-
-    @override
-    def __call__(self, x: Tensor, training: bool = False, record: ComponentRecording = None) -> Tensor:
-        return self.layers(x, training, record)
+    @classmethod
+    def as_cleared(cls, encoding_size: int, regularization: int = 0) -> Self:
+        return cls(
+            encoding_size, zeros(encoding_size, encoding_size, dtype=int32) + regularization, CrossEntropyExpLoss()
+        )

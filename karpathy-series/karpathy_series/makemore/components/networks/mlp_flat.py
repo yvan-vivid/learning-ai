@@ -3,12 +3,11 @@ from typing import Self, override
 
 from torch import Generator, Tensor, no_grad, ones, randn, tanh, zeros
 
-from karpathy_series.makemore.components.models.model import Model
-from karpathy_series.makemore.components.neuro.component import ComponentRecording
+from karpathy_series.makemore.components.neuro.component import BaseComponent
 
 
 @dataclass(frozen=True)
-class MPLNet(Model):
+class MLPNet(BaseComponent):
     input_net: Tensor
     hidden_net: Tensor
     hidden_gain: Tensor
@@ -21,22 +20,7 @@ class MPLNet(Model):
     batch_std: Tensor
 
     @override
-    def describe(self) -> str:
-        return "An MLP model built without components"
-
-    @override
-    def parameters(self) -> list[Tensor]:
-        return [
-            self.input_net,
-            self.hidden_net,
-            self.hidden_gain,
-            self.hidden_bias,
-            self.output_net,
-            self.output_bias,
-        ]
-
-    @override
-    def __call__(self, x: Tensor, training: bool = False, record: ComponentRecording = None) -> Tensor:
+    def forward(self, x: Tensor, training: bool = False) -> Tensor:
         context_length = self.hidden_net.shape[0]
         w = self.input_net[x].view(-1, context_length)
         v = w @ self.hidden_net
@@ -55,6 +39,21 @@ class MPLNet(Model):
 
         h = tanh(self.hidden_gain * v_norm + self.hidden_bias)
         return h @ self.output_net + self.output_bias
+
+    @override
+    def parameters(self) -> list[Tensor]:
+        return [
+            self.input_net,
+            self.hidden_net,
+            self.hidden_gain,
+            self.hidden_bias,
+            self.output_net,
+            self.output_bias,
+        ]
+
+    @override
+    def describe(self) -> str:
+        return "An MLP model built without components"
 
     @classmethod
     def init(
