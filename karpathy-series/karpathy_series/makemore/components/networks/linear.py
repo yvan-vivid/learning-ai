@@ -2,10 +2,10 @@ from typing import override
 
 from torch import Generator, Tensor, randn
 
-from karpathy_series.makemore.components.neuro.component import BaseComponent
+from karpathy_series.makemore.components.neuro.component import BaseComponent, LogitGenerableComponent
 
 
-class LinearNetwork(BaseComponent):
+class LinearNetwork(LogitGenerableComponent, BaseComponent):
     """
     This is a model `m` with N ins and M outs. Supposing `s` is a batch shape:
         `x : N[s]`

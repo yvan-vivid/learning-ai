@@ -3,12 +3,12 @@ from typing import Self, override
 
 from torch import Tensor, randn, tanh
 
-from karpathy_series.makemore.components.neuro.component import BaseComponent
+from karpathy_series.makemore.components.neuro.component import BaseComponent, LogitGenerableComponent
 from karpathy_series.makemore.util import sliding_window
 
 
 @dataclass(frozen=True)
-class Perceptron(BaseComponent):
+class Perceptron(LogitGenerableComponent, BaseComponent):
     input_net: Tensor
     hidden_layers: list[Tensor]
 
