@@ -28,7 +28,7 @@ class LearningRecord:
 
 @dataclass(frozen=True)
 class Learner:
-    model: NetModel
+    model: Model
     lr: float
 
     def update(self, loss: Tensor, lr: float) -> Tensor:

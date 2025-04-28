@@ -17,9 +17,6 @@ class Model(ABC):
         """N[s] x M[s] => L"""
         return self.loss(self.component(x, training=training, record=record), y)
 
-    def items(self) -> Iterator[tuple[Token, Token, int]]:
-        for i, j in product(range(self.encoding_size), range(self.encoding_size)):
-            yield i, j, int(self.counts[i, j].item())
 
 @dataclass(frozen=True)
 class FreqModel(Model):
