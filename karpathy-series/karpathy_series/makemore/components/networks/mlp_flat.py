@@ -3,11 +3,11 @@ from typing import Self, override
 
 from torch import Generator, Tensor, no_grad, ones, randn, tanh, zeros
 
-from karpathy_series.makemore.components.neuro.component import BaseComponent
+from karpathy_series.makemore.components.neuro.component import BaseComponent, LogitGenerableComponent
 
 
 @dataclass(frozen=True)
-class MLPNet(BaseComponent):
+class MLPNet(LogitGenerableComponent, BaseComponent):
     input_net: Tensor
     hidden_net: Tensor
     hidden_gain: Tensor

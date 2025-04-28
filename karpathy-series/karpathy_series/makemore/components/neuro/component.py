@@ -5,6 +5,8 @@ from typing import override
 from torch import Tensor
 
 from karpathy_series.makemore.components.recorder import Recorder
+from karpathy_series.makemore.encoding.character import Token
+from karpathy_series.makemore.util import sample_index_logits
 
 type ComponentRecorder = Recorder[Component]
 type ComponentRecording = ComponentRecorder | None
@@ -29,6 +31,20 @@ class Component(ABC):
     def size(self) -> int:
         """Number of individual scalar parameters in the component."""
         return sum(p.nelement() for p in self.parameters())
+
+
+class GenerableComponent(Component, ABC):
+    @abstractmethod
+    def realize(self, u: Tensor) -> Token: ...
+
+    def generate(self, x: Tensor) -> Token:
+        return self.realize(self(x))
+
+
+class LogitGenerableComponent(GenerableComponent, ABC):
+    @override
+    def realize(self, u: Tensor) -> Token:
+        return sample_index_logits(u)
 
 
 class BaseComponent(Component, ABC):

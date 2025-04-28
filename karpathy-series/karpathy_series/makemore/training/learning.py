@@ -3,7 +3,7 @@ from typing import Self
 
 from torch import Tensor, no_grad, tensor
 
-from karpathy_series.makemore.components.models.model import FreqModel, NetModel
+from karpathy_series.makemore.components.models.model import FreqModel, Model
 from karpathy_series.makemore.training.data import TrainingSequence
 
 
@@ -31,7 +31,11 @@ class Learner:
     model: NetModel
     lr: float
 
-    def update(self, lr: float) -> Tensor:
+    def update(self, loss: Tensor, lr: float) -> Tensor:
+        for wa in self.model.component.parameters():
+            wa.grad = None
+        loss.backward()  # type: ignore[no-untyped-call]
+
         data_update_ratios: list[float] = []
         for wa in self.model.component.parameters():
             if wa.grad is not None:
@@ -46,9 +50,8 @@ class Learner:
         for k in range(epochs):
             loss = tensor(())
             for _n, (xis, yis) in enumerate(training()):
-                loss = self.model.run(xis, yis, training=True)
-                self.model.backward(loss)
-                update_ratios = self.update(self.lr)
+                loss = self.model(xis, yis, training=True)
+                update_ratios = self.update(loss, self.lr)
                 record.record(loss, update_ratios)
             if (k + 1) % report_epochs == 0:
                 print(f"Epoch {k + 1} is finished with loss = {float(loss.item()): 0.4f}")
@@ -62,12 +65,12 @@ class FreqLearner:
     def train(self, xis: Tensor, yis: Tensor) -> None:
         assert xis.shape == yis.shape
         for xi, yi in zip(list(xis), list(yis)):
-            self.model.counts[xi, yi] += 1
+            self.model.component.counts[xi, yi] += 1
 
     def __call__(self, training: TrainingSequence) -> list[float]:
         losses: list[float] = []
         for _n, (xis, yis) in enumerate(training()):
-            loss = self.model.run(xis, yis)
-            losses.append(loss.item())
+            loss = self.model(xis, yis, training=True)
             self.train(xis, yis)
+            losses.append(loss.item())
         return losses

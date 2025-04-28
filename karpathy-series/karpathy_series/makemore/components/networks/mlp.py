@@ -6,7 +6,7 @@ from typing import Optional, Self, override
 from torch import Generator
 
 from karpathy_series.makemore.components.neuro.batch_norm import BatchNorm1d
-from karpathy_series.makemore.components.neuro.component import Component
+from karpathy_series.makemore.components.neuro.component import Component, LogitGenerableComponent
 from karpathy_series.makemore.components.neuro.embedding import Embedding
 from karpathy_series.makemore.components.neuro.flatten import Flatten
 from karpathy_series.makemore.components.neuro.functional import Tanh
@@ -15,13 +15,14 @@ from karpathy_series.makemore.components.neuro.sequence import Sequence
 
 
 @dataclass(frozen=True)
-class MPLNet(Sequence):
+class MPLNet(LogitGenerableComponent, Sequence):
     encoding_size: int
     embedding_dims: int
 
     @override
     def describe(self) -> str:
-        return "An MLP model"
+        parts = super().describe()
+        return f"An MLP model: {parts}"
 
     @staticmethod
     def module(fan_in: int, fan_out: int, init_scale: float, generator: Optional[Generator]) -> tuple[Component, ...]:
