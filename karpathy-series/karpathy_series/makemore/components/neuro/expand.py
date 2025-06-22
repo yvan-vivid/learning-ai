@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import override
+from typing import cast, override
 
 from torch import Tensor
 
@@ -20,7 +20,7 @@ class Expand(BaseComponent):
 
     @override
     def forward(self, x: Tensor, training: bool = False) -> Tensor:
-        return x.unflatten(self.dim, (-1, self.width))  # type: ignore[no-untyped-call,no-any-return]
+        return cast(Tensor, x.unflatten(self.dim, (-1, self.width)))  # type: ignore[no-untyped-call]
 
     @override
     def parameters(self) -> list[Tensor]:
