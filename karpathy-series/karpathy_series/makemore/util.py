@@ -1,7 +1,9 @@
+import random
+from enum import IntEnum
 from itertools import islice, tee
 from typing import Iterable, Iterator, Optional
 
-from torch import Tensor, multinomial
+from torch import Generator, Tensor, multinomial
 
 
 def sliding_window[V](itb: Iterable[V], n: int) -> Iterator[tuple[V, ...]]:
@@ -46,3 +48,27 @@ def sample_index_logits(logits: Tensor) -> int:
 
 def cross_entropy_exp(u: Tensor, y: Tensor) -> Tensor:
     return -norm_distro(u, -1)[range(u.shape[0]), y].log().mean()
+
+
+# Random
+
+
+class Seed(IntEnum):
+    KarpathyTorch = 2147483647
+    KarpathyRand = 42
+
+
+def fixed_generator(seed: Seed) -> Generator:
+    return Generator().manual_seed(seed.value)
+
+
+def karpathy_generator() -> Generator:
+    return fixed_generator(Seed.KarpathyTorch)
+
+
+def set_rand_seed(seed: Seed) -> None:
+    random.seed(seed.value)
+
+
+def set_rand_karpathy() -> None:
+    set_rand_seed(Seed.KarpathyRand)

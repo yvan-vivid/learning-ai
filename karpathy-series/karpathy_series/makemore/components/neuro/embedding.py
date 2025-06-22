@@ -6,6 +6,10 @@ from karpathy_series.makemore.components.neuro.component import BaseComponent
 
 
 class Embedding(BaseComponent):
+    """
+    Given a discrete input space of `N` this embeds into `R[d]`, where `d` is the target dimension.
+    """
+
     embedding: Tensor
 
     def __init__(
@@ -20,6 +24,7 @@ class Embedding(BaseComponent):
 
     @override
     def forward(self, x: Tensor, training: bool = False) -> Tensor:
+        """N[s] -> R[s, d]"""
         return self.embedding[x]
 
     @override
