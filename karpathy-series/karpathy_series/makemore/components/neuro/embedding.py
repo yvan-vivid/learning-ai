@@ -1,3 +1,4 @@
+import math
 from typing import override
 
 from torch import Generator, Tensor, randn
@@ -19,7 +20,7 @@ class Embedding(BaseComponent):
         init_scale: float = 1.0,
         generator: Generator | None = None,
     ) -> None:
-        init_factor: float = init_scale * input_size**-0.5
+        init_factor = init_scale * math.pow(input_size, -0.5)
         self.embedding = (randn(input_size, embedding_dims, generator=generator) * init_factor).requires_grad_()
 
     @override

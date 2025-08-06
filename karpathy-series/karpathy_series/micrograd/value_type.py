@@ -1,4 +1,5 @@
-from abc import abstractmethod
+import math
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import reduce
 from math import exp
@@ -19,7 +20,7 @@ class Variable(ValueTypeBase):
 
 
 @dataclass(frozen=True)
-class Operator(ValueTypeBase):
+class Operator(ValueTypeBase, ABC):
     glyph: ClassVar[str]
 
     @abstractmethod
@@ -76,8 +77,7 @@ class Prod(Operator):
 
     @override
     def forward(self, operands: Sequence[Valuation]) -> Valuation:
-        value: float = reduce(mul, (v.value for v in operands)) * self.coefficient
-        return Valuation(value)
+        return Valuation(reduce(lambda x, y: x * y, (v.value for v in operands)) * self.coefficient)
 
     @override
     def backward(self, result: Valuation, operands: Sequence[Valuation]) -> None:
@@ -109,8 +109,7 @@ class Pow(Operator):
     def forward(self, operands: Sequence[Valuation]) -> Valuation:
         assert len(operands) == 1
         operand = operands[0]
-        value: float = operand.value**self.exponent
-        return Valuation(value)
+        return Valuation(math.pow(operand.value, self.exponent))
 
     @override
     def backward(self, result: Valuation, operands: Sequence[Valuation]) -> None:

@@ -1,3 +1,4 @@
+import math
 from dataclasses import dataclass
 from typing import Self, override
 
@@ -104,7 +105,7 @@ class MLPNet(LogitGenerableComponent, BaseComponent):
         generator: Generator | None,
     ) -> Self:
         context_length = context_size * embedding_dims
-        hidden_factor: float = (5.0 / 3.0) * (float(context_length) ** -0.5)
+        hidden_factor = (5.0 / 3.0) * math.pow(float(context_length), -0.5)
         return cls.init(
             randn(encoding_size, embedding_dims, generator=generator),
             randn(context_length, hidden_dims, generator=generator) * hidden_factor,

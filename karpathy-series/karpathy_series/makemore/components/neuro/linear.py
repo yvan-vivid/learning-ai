@@ -1,3 +1,4 @@
+import math
 from typing import Optional, override
 
 from torch import Generator, Tensor, randn, zeros
@@ -17,7 +18,7 @@ class Linear(BaseComponent):
         init_scale: float = 1.0,
         generator: Generator | None = None,
     ) -> None:
-        init_factor: float = init_scale * fan_in**-0.5
+        init_factor = init_scale * math.pow(fan_in, -0.5)
         self.weight = (randn(fan_in, fan_out, generator=generator) * init_factor).requires_grad_()
         if bias:
             self.bias = zeros(fan_out).requires_grad_()
