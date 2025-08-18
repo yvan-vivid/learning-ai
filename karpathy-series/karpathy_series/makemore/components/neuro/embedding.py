@@ -35,3 +35,7 @@ class Embedding(BaseComponent):
     @override
     def describe(self) -> str:
         return f"Embedding [{self.embedding.shape[0]}, {self.embedding.shape[1]}]"
+
+    @override
+    def shape(self, x: tuple[int, ...]) -> tuple[int, ...]:
+        return (*x, self.embedding.shape[-1])

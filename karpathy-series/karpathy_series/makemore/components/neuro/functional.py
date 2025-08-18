@@ -23,5 +23,9 @@ class Functional(BaseComponent):
     def describe(self) -> str:
         return f"Functional {self.fun}"
 
+    @override
+    def shape(self, x: tuple[int, ...]) -> tuple[int, ...]:
+        return x
+
 
 Tanh = partial(Functional, tanh)

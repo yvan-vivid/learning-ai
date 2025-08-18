@@ -6,6 +6,7 @@ from karpathy_series.makemore.components.neuro.component import BaseComponent
 
 
 class BatchNorm1d(BaseComponent):
+    fan: int
     eps: float
     momentum: float
     gamma: Tensor
@@ -13,13 +14,14 @@ class BatchNorm1d(BaseComponent):
     mean: Tensor
     variance: Tensor
 
-    def __init__(self, dim: int, eps: float = 1e-5, momentum: float = 0.1, init_scale: float = 1.0) -> None:
+    def __init__(self, fan: int, eps: float = 1e-5, momentum: float = 0.1, init_scale: float = 1.0) -> None:
+        self.fan = fan
         self.eps = eps
         self.momentum = momentum
-        self.gamma = (ones(dim) * init_scale).requires_grad_()
-        self.beta = zeros(dim).requires_grad_()
-        self.mean = zeros(dim)
-        self.variance = ones(dim)
+        self.gamma = (ones(fan) * init_scale).requires_grad_()
+        self.beta = zeros(fan).requires_grad_()
+        self.mean = zeros(fan)
+        self.variance = ones(fan)
 
     def _update_with_momentum(self, register: Tensor, update: Tensor) -> None:
         register.data *= 1 - self.momentum
@@ -36,10 +38,11 @@ class BatchNorm1d(BaseComponent):
     @override
     def forward(self, x: Tensor, training: bool = False) -> Tensor:
         if training:
-            self._update_statistics(mean := x.mean(0), variance := x.var(0))
-            return self.normalize(x, mean, variance)
+            x_f = x.flatten(end_dim=-2)
+            self._update_statistics(mean := x_f.mean(0), variance := x_f.var(0))
         else:
-            return self.normalize(x, self.mean, self.variance)
+            mean, variance = self.mean, self.variance
+        return self.normalize(x, mean, variance)
 
     @override
     def parameters(self) -> list[Tensor]:
@@ -47,4 +50,9 @@ class BatchNorm1d(BaseComponent):
 
     @override
     def describe(self) -> str:
-        return f"BatchNorm1d [{self.gamma.shape[0]}]"
+        return f"BatchNorm1d [{self.fan}]"
+
+    @override
+    def shape(self, x: tuple[int, ...]) -> tuple[int, ...]:
+        assert x[-1] == self.fan, f"last index {x[-1]} not compatible with {self.fan}"
+        return x

@@ -21,9 +21,10 @@ class Slide(BaseComponent):
 
     @override
     def forward(self, x: Tensor, training: bool = False) -> Tensor:
-        expanded = cast(Tensor, x.unflatten(self.dim, (-1, self.width)))  # type: ignore[no-untyped-call]
-        if x.ndim > self.dim + 1:
-            return expanded.flatten(self.dim + 1, self.dim + 2)
+        dim = len(x.shape) + self.dim if self.dim < 0 else self.dim
+        expanded = cast(Tensor, x.unflatten(dim, (-1, self.width)))  # type: ignore[no-untyped-call]
+        if x.ndim > dim + 1:
+            return expanded.flatten(dim + 1, dim + 2)
         else:
             return expanded
 
@@ -34,3 +35,14 @@ class Slide(BaseComponent):
     @override
     def describe(self) -> str:
         return f"Move a factor of {self.width} from {self.dim} to {self.dim + 1}"
+
+    @override
+    def shape(self, x: tuple[int, ...]) -> tuple[int, ...]:
+        dim = len(x) + self.dim if self.dim < 0 else self.dim
+        assert 0 <= dim < len(x), f"'dim' {dim} out of bounds for size {x}"
+        w = self.width
+        xd = x[dim]
+        f = xd // w
+        assert xd == w * f, f"{w} not a factor of {xd} at {dim} in {x}"
+        suffix = (w * x[dim + 1], *x[dim + 2 :]) if dim < len(x) - 1 else (w,)
+        return (*x[:dim], f, *suffix)

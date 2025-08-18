@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from math import prod
 from typing import override
 
 from torch import Tensor
@@ -27,3 +28,9 @@ class Flatten(BaseComponent):
     @override
     def describe(self) -> str:
         return f"Flatten last {self.last} dims"
+
+    @override
+    def shape(self, x: tuple[int, ...]) -> tuple[int, ...]:
+        assert 0 < self.last <= len(x), f"input {x} not wide enough for last = {self.last}"
+        k = len(x) - self.last
+        return (*x[:k], prod(x[k:]))

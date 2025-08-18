@@ -32,6 +32,11 @@ class Component(ABC):
         """Number of individual scalar parameters in the component."""
         return sum(p.nelement() for p in self.parameters())
 
+    @abstractmethod
+    def shape(self, x: tuple[int, ...]) -> tuple[int, ...]:
+        """Shape change."""
+        ...
+
 
 class GenerableComponent(Component, ABC):
     @abstractmethod

@@ -29,3 +29,13 @@ class Expand(BaseComponent):
     @override
     def describe(self) -> str:
         return f"Expand dim {self.dim} into {self.width} sized batches"
+
+    @override
+    def shape(self, x: tuple[int, ...]) -> tuple[int, ...]:
+        dim = len(x) + self.dim if self.dim < 0 else self.dim
+        assert 0 <= dim < len(x), f"dim {dim} out of bounds for {x}"
+        w = self.width
+        xd = x[dim]
+        f = xd // w
+        assert xd == w * f, f"{w} not a factor of {xd} at {dim} in {x}"
+        return (*x[: dim - 1], f, w, *x[dim:])

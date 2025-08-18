@@ -27,3 +27,10 @@ class Sequence(Component):
     def describe(self) -> str:
         descriptions = ", ".join(layer.describe() for layer in self.layers)
         return f"Sequence [{descriptions}]"
+
+    @override
+    def shape(self, x: tuple[int, ...]) -> tuple[int, ...]:
+        s = x
+        for layer in self.layers:
+            s = layer.shape(s)
+        return s
