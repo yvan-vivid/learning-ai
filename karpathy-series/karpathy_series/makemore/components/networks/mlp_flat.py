@@ -56,6 +56,10 @@ class MLPNet(LogitGenerableComponent, BaseComponent):
     def describe(self) -> str:
         return "An MLP model built without components"
 
+    @override
+    def shape(self, x: tuple[int, ...]) -> tuple[int, ...]:
+        return (*x[:-1], self.output_net.shape[0])
+
     @classmethod
     def init(
         cls,

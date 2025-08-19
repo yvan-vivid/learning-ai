@@ -34,3 +34,7 @@ class Perceptron(LogitGenerableComponent, BaseComponent):
             randn(in_size, hidden[0], requires_grad=True),
             [randn(p, requires_grad=True) for p in sliding_window(hidden, 2)],
         )
+
+    @override
+    def shape(self, x: tuple[int, ...]) -> tuple[int, ...]:
+        return (*x[:-1], self.hidden_layers[-1].shape[0])

@@ -34,6 +34,10 @@ class Frequentist(GenerableComponent, BaseComponent):
         for i, j in product(range(self.counts.shape[0]), range(self.counts.shape[1])):
             yield i, j, int(self.counts[i, j].item())
 
+    @override
+    def shape(self, x: tuple[int, ...]) -> tuple[int, ...]:
+        return (*x, self.counts.shape[0])
+
     @classmethod
     def as_cleared(cls, encoding_size: int, regularization: int = 0) -> Self:
         return cls(zeros(encoding_size, encoding_size, dtype=int32) + regularization)

@@ -37,3 +37,9 @@ class LinearNetwork(LogitGenerableComponent, BaseComponent):
         generator: Generator | None = None,
     ) -> None:
         self.wa = randn(fan_in, fan_out, generator=generator).requires_grad_()
+
+    @override
+    def shape(self, x: tuple[int, ...]) -> tuple[int, ...]:
+        fan_out, fan_in = self.wa.shape
+        assert x[-1] == fan_in, f"input shape {x} incompatible with fan-in {fan_in}"
+        return (*x[:-1], fan_out)
