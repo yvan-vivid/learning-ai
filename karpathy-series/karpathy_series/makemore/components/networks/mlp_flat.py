@@ -5,6 +5,7 @@ from typing import Self, override
 from torch import Generator, Tensor, no_grad, ones, randn, tanh, zeros
 
 from karpathy_series.makemore.components.neuro.component import BaseComponent, LogitGenerableComponent
+from karpathy_series.makemore.components.typing import ArrayType
 
 
 @dataclass(frozen=True)
@@ -57,8 +58,8 @@ class MLPNet(LogitGenerableComponent, BaseComponent):
         return "An MLP model built without components"
 
     @override
-    def shape(self, x: tuple[int, ...]) -> tuple[int, ...]:
-        return (*x[:-1], self.output_net.shape[0])
+    def type_transform(self, x: ArrayType) -> ArrayType:
+        raise NotImplementedError
 
     @classmethod
     def init(

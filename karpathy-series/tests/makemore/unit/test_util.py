@@ -1,7 +1,7 @@
 from torch import tensor
 from torch.testing import assert_close
 
-from karpathy_series.makemore.util import norm_distro, sliding_window, traverse_list, traverse_str
+from karpathy_series.makemore.util import affine_sequence, norm_distro, sliding_window, traverse_list, traverse_str
 
 
 def test_sliding_window() -> None:
@@ -64,3 +64,9 @@ def test_norm_distro() -> None:
             ]
         ),
     )
+
+
+def test_affine_sequence() -> None:
+    assert tuple(affine_sequence(1, 2, 0)) == (1,)
+    assert tuple(affine_sequence(1, 2, 1)) == (1, 2)
+    assert tuple(affine_sequence(1, 2, 3)) == (1, 2, 2, 2)

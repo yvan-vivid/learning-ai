@@ -3,6 +3,7 @@ from typing import override
 from torch import Generator, Tensor, randn
 
 from karpathy_series.makemore.components.neuro.component import BaseComponent, LogitGenerableComponent
+from karpathy_series.makemore.components.typing import ArrayType
 
 
 class LinearNetwork(LogitGenerableComponent, BaseComponent):
@@ -39,7 +40,5 @@ class LinearNetwork(LogitGenerableComponent, BaseComponent):
         self.wa = randn(fan_in, fan_out, generator=generator).requires_grad_()
 
     @override
-    def shape(self, x: tuple[int, ...]) -> tuple[int, ...]:
-        fan_out, fan_in = self.wa.shape
-        assert x[-1] == fan_in, f"input shape {x} incompatible with fan-in {fan_in}"
-        return (*x[:-1], fan_out)
+    def type_transform(self, x: ArrayType) -> ArrayType:
+        raise NotImplementedError

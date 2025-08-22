@@ -5,6 +5,7 @@ from typing import override
 from torch import Tensor
 
 from karpathy_series.makemore.components.recorder import Recorder
+from karpathy_series.makemore.components.typing import ArrayType
 from karpathy_series.makemore.encoding.character import Token
 from karpathy_series.makemore.util import sample_index_logits
 
@@ -33,7 +34,7 @@ class Component(ABC):
         return sum(p.nelement() for p in self.parameters())
 
     @abstractmethod
-    def shape(self, x: tuple[int, ...]) -> tuple[int, ...]:
+    def type_transform(self, x: ArrayType) -> ArrayType:
         """Shape change."""
         ...
 

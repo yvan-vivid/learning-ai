@@ -5,6 +5,7 @@ from typing import Callable, override
 from torch import Tensor, tanh
 
 from karpathy_series.makemore.components.neuro.component import BaseComponent
+from karpathy_series.makemore.components.typing import ArrayType
 
 
 @dataclass(frozen=True)
@@ -24,7 +25,7 @@ class Functional(BaseComponent):
         return f"Functional {self.fun}"
 
     @override
-    def shape(self, x: tuple[int, ...]) -> tuple[int, ...]:
+    def type_transform(self, x: ArrayType) -> ArrayType:
         return x
 
 

@@ -1,9 +1,10 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import cast, override
 
 from torch import Tensor
 
 from karpathy_series.makemore.components.neuro.component import BaseComponent
+from karpathy_series.makemore.components.typing import ArrayType, Dims
 
 
 @dataclass(frozen=True)
@@ -37,12 +38,5 @@ class Slide(BaseComponent):
         return f"Move a factor of {self.width} from {self.dim} to {self.dim + 1}"
 
     @override
-    def shape(self, x: tuple[int, ...]) -> tuple[int, ...]:
-        dim = len(x) + self.dim if self.dim < 0 else self.dim
-        assert 0 <= dim < len(x), f"'dim' {dim} out of bounds for size {x}"
-        w = self.width
-        xd = x[dim]
-        f = xd // w
-        assert xd == w * f, f"{w} not a factor of {xd} at {dim} in {x}"
-        suffix = (w * x[dim + 1], *x[dim + 2 :]) if dim < len(x) - 1 else (w,)
-        return (*x[:dim], f, *suffix)
+    def type_transform(self, x: ArrayType) -> ArrayType:
+        return replace(x, shape=x.shape.slide(self.dim, Dims(self.width)))

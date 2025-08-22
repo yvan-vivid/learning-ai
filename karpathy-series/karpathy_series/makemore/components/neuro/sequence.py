@@ -6,6 +6,7 @@ from typing import override
 from torch import Tensor
 
 from karpathy_series.makemore.components.neuro.component import Component, ComponentRecording
+from karpathy_series.makemore.components.typing import ArrayType
 
 
 @dataclass(frozen=True)
@@ -29,8 +30,8 @@ class Sequence(Component):
         return f"Sequence [{descriptions}]"
 
     @override
-    def shape(self, x: tuple[int, ...]) -> tuple[int, ...]:
+    def type_transform(self, x: ArrayType) -> ArrayType:
         s = x
         for layer in self.layers:
-            s = layer.shape(s)
+            s = layer.type_transform(s)
         return s

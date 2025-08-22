@@ -3,6 +3,7 @@ from typing import override
 from torch import Tensor, no_grad, ones, sqrt, zeros
 
 from karpathy_series.makemore.components.neuro.component import BaseComponent
+from karpathy_series.makemore.components.typing import ArrayType, ArrayTypeError, Dims
 
 
 class BatchNorm1d(BaseComponent):
@@ -53,6 +54,7 @@ class BatchNorm1d(BaseComponent):
         return f"BatchNorm1d [{self.fan}]"
 
     @override
-    def shape(self, x: tuple[int, ...]) -> tuple[int, ...]:
-        assert x[-1] == self.fan, f"last index {x[-1]} not compatible with {self.fan}"
+    def type_transform(self, x: ArrayType) -> ArrayType:
+        if x.shape.active() != Dims(self.fan):
+            raise ArrayTypeError(f"last index {x.shape.active()} not compatible with {self.fan}")
         return x

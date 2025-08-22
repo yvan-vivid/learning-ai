@@ -1,6 +1,6 @@
 import random
 from enum import IntEnum
-from itertools import islice, tee
+from itertools import islice, repeat, tee
 from typing import Iterable, Iterator, Optional
 
 from torch import Generator, Tensor, multinomial
@@ -29,6 +29,11 @@ def traverse_str(xs: Iterable[Optional[str]]) -> Optional[str]:
             return None
         out += x
     return out
+
+
+def affine_sequence[V](a: V, c: V, r: int) -> Iterator[V]:
+    yield a
+    yield from repeat(c, r)
 
 
 # Array utilities

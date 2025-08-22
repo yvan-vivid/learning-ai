@@ -4,6 +4,7 @@ from typing import Optional, override
 from torch import Generator, Tensor, randn, zeros
 
 from karpathy_series.makemore.components.neuro.component import BaseComponent
+from karpathy_series.makemore.components.typing import ArrayType, ArrayTypeError, Dims, TensorType
 
 
 class Linear(BaseComponent):
@@ -44,6 +45,11 @@ class Linear(BaseComponent):
         return f"Linear [{self.fan_in}, {self.fan_out}]{suffix}"
 
     @override
-    def shape(self, x: tuple[int, ...]) -> tuple[int, ...]:
-        assert x[-1] == self.fan_in, f"input shape {x} incompatible with fan-in {self.fan_in}"
-        return (*x[:-1], self.fan_out)
+    def type_transform(self, x: ArrayType) -> ArrayType:
+        if not isinstance(x, TensorType):
+            raise ArrayTypeError(f"Input type {x} not scalar")
+
+        if (active := x.shape.active()) is None or self.fan_in != active.value:
+            raise ArrayTypeError(f"Active input of {x} doesn't match fan-in {self.fan_in}")
+
+        return x.replace_active(Dims(self.fan_out))

@@ -6,6 +6,7 @@ from typing import Self, override
 from torch import Tensor, int32, zeros
 
 from karpathy_series.makemore.components.neuro.component import BaseComponent, GenerableComponent
+from karpathy_series.makemore.components.typing import ArrayType
 from karpathy_series.makemore.encoding.character import Token
 from karpathy_series.makemore.util import norm_distro, sample_index_model
 
@@ -35,8 +36,8 @@ class Frequentist(GenerableComponent, BaseComponent):
             yield i, j, int(self.counts[i, j].item())
 
     @override
-    def shape(self, x: tuple[int, ...]) -> tuple[int, ...]:
-        return (*x, self.counts.shape[0])
+    def type_transform(self, x: ArrayType) -> ArrayType:
+        raise NotImplementedError
 
     @classmethod
     def as_cleared(cls, encoding_size: int, regularization: int = 0) -> Self:

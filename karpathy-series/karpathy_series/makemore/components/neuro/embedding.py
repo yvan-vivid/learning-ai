@@ -1,9 +1,10 @@
 import math
 from typing import override
 
-from torch import Generator, Tensor, randn
+from torch import Generator, Tensor, dtype, float16, randn
 
 from karpathy_series.makemore.components.neuro.component import BaseComponent
+from karpathy_series.makemore.components.typing import ArrayType, ArrayTypeError, Dims, ScalarType, TokenArrayType
 
 
 class Embedding(BaseComponent):
@@ -12,6 +13,8 @@ class Embedding(BaseComponent):
     """
 
     embedding: Tensor
+    embedding_dims: int
+    float_type: dtype = float16
 
     def __init__(
         self,
@@ -21,6 +24,7 @@ class Embedding(BaseComponent):
         generator: Generator | None = None,
     ) -> None:
         init_factor = init_scale * math.pow(input_size, -0.5)
+        self.embedding_dims = embedding_dims
         self.embedding = (randn(input_size, embedding_dims, generator=generator) * init_factor).requires_grad_()
 
     @override
@@ -37,5 +41,8 @@ class Embedding(BaseComponent):
         return f"Embedding [{self.embedding.shape[0]}, {self.embedding.shape[1]}]"
 
     @override
-    def shape(self, x: tuple[int, ...]) -> tuple[int, ...]:
-        return (*x, self.embedding.shape[-1])
+    def type_transform(self, x: ArrayType) -> ArrayType:
+        if not isinstance(x, TokenArrayType):
+            raise ArrayTypeError(f"input type {x} is not a token array")
+
+        return x.embed(ScalarType(self.float_type), Dims(self.embedding_dims))

@@ -1,9 +1,10 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import cast, override
 
 from torch import Tensor
 
 from karpathy_series.makemore.components.neuro.component import BaseComponent
+from karpathy_series.makemore.components.typing import ArrayType, Dims
 
 
 @dataclass(frozen=True)
@@ -31,11 +32,5 @@ class Expand(BaseComponent):
         return f"Expand dim {self.dim} into {self.width} sized batches"
 
     @override
-    def shape(self, x: tuple[int, ...]) -> tuple[int, ...]:
-        dim = len(x) + self.dim if self.dim < 0 else self.dim
-        assert 0 <= dim < len(x), f"dim {dim} out of bounds for {x}"
-        w = self.width
-        xd = x[dim]
-        f = xd // w
-        assert xd == w * f, f"{w} not a factor of {xd} at {dim} in {x}"
-        return (*x[: dim - 1], f, w, *x[dim:])
+    def type_transform(self, x: ArrayType) -> ArrayType:
+        return replace(x, shape=x.shape.factor(self.dim, Dims(self.width)))

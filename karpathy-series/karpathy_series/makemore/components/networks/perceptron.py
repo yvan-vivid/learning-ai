@@ -4,6 +4,7 @@ from typing import Self, override
 from torch import Tensor, randn, tanh
 
 from karpathy_series.makemore.components.neuro.component import BaseComponent, LogitGenerableComponent
+from karpathy_series.makemore.components.typing import ArrayType
 from karpathy_series.makemore.util import sliding_window
 
 
@@ -27,6 +28,10 @@ class Perceptron(LogitGenerableComponent, BaseComponent):
             m = tanh(m @ wa)
         return m
 
+    @override
+    def type_transform(self, x: ArrayType) -> ArrayType:
+        raise NotImplementedError
+
     @classmethod
     def init_random_from_size(cls, in_size: int, out_size: int, hidden: list[int]) -> Self:
         hidden.append(out_size)
@@ -34,7 +39,3 @@ class Perceptron(LogitGenerableComponent, BaseComponent):
             randn(in_size, hidden[0], requires_grad=True),
             [randn(p, requires_grad=True) for p in sliding_window(hidden, 2)],
         )
-
-    @override
-    def shape(self, x: tuple[int, ...]) -> tuple[int, ...]:
-        return (*x[:-1], self.hidden_layers[-1].shape[0])
