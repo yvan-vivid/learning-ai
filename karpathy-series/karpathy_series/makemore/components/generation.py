@@ -97,7 +97,8 @@ class NGramNetGenerator:
 
     @cached_property
     def generator(self) -> Callable[[int], str]:
-        return partial(n_gram_generate, self.forward, self.charset.pad * self.context_size, self.charset.pad)
+        pad = " " if self.charset.pad is None else self.charset.pad
+        return partial(n_gram_generate, self.forward, pad * self.context_size, self.charset.pad)
 
     def forward(self, c: str) -> str:
         in_v = tensor(self.in_encoder.encode_or_raise(c))

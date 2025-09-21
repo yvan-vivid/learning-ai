@@ -12,15 +12,19 @@ type Token = int
 @dataclass(frozen=True)
 class CharacterSet:
     under: FrozenSet[str]
-    pad: str
+    pad: str | None
 
     @cached_property
     def complete(self) -> list[str]:
-        return [self.pad] + sorted(self.under)
+        return ([] if self.pad is None else [self.pad]) + sorted(self.under)
 
     @classmethod
-    def from_words(cls, words: Iterable[str], pad: str = ".") -> Self:
-        return cls(frozenset("".join(words)), pad)
+    def from_text(cls, text: str, pad: str | None = None) -> Self:
+        return cls(frozenset(text), pad)
+
+    @classmethod
+    def from_words(cls, words: Iterable[str], pad: str | None = ".") -> Self:
+        return cls.from_text("".join(words), pad)
 
 
 @dataclass(frozen=True)
