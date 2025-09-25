@@ -29,6 +29,11 @@ class CharacterSet:
 
 @dataclass(frozen=True)
 class CharacterEncoder(TabularEncoder[Token, str]):
+    def decode_str(self, tokens: list[Token]) -> str | None:
+        if (decoded := self.decodes(tokens)) is None:
+            return None
+        return "".join(decoded)
+
     @classmethod
     def from_charset(cls, character_set: CharacterSet) -> Self:
         return cls.from_pairs(enumerate(character_set.complete))
