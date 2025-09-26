@@ -4,7 +4,7 @@ from torch import Tensor, no_grad, zeros
 from torch.optim import Optimizer
 
 from karpathy_series.gpt_from_scratch.batch_generation import BatchFactory, BatchGenerator
-from karpathy_series.gpt_from_scratch.components.model import Model
+from karpathy_series.gpt_from_scratch.components.network.model import Model
 from karpathy_series.gpt_from_scratch.data import SequenceData
 
 

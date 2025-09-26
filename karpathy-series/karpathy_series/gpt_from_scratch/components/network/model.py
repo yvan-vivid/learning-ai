@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import override
 
-from torch import Tensor, concat, multinomial, softmax, zeros
+from torch import Tensor, concat, int64, multinomial, softmax, zeros
 from torch.nn import Module
 from torch.nn.functional import cross_entropy
 
@@ -21,14 +21,21 @@ class Model(Module, ABC):
 
 class Generable(Model, ABC):
     @abstractmethod
+    def initial(self) -> Tensor: ...
+
+    @abstractmethod
     def generate(self, state: Tensor, max_output_tokens: int) -> Tensor: ...
+
+    def generate_from_init(self, max_output_tokens: int) -> Tensor:
+        return self.generate(self.initial(), max_output_tokens)
 
 
 class WindowedGenerable(Generable, ABC):
     window_length: int
 
+    @override
     def initial(self) -> Tensor:
-        return zeros(1, self.window_length)
+        return zeros(1, self.window_length, dtype=int64)
 
     @override
     def generate(self, state: Tensor, max_output_tokens: int) -> Tensor:
