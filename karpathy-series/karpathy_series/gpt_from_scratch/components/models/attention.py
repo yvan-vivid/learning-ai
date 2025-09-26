@@ -16,7 +16,6 @@ class AttentionModel(ModelWithCrossEntropyLoss, WindowedGenerable):
     embedding_dims: int
     embedding: PositionalEmbedding
     blocks: ModuleList
-    block2: AttentionBlock
     output: Linear
 
     def __init__(

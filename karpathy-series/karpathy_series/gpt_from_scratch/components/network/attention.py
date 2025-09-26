@@ -34,6 +34,7 @@ class MultiHeadSelfAttention(Module):
     head_count: int
     head_size: int
     heads: ModuleList
+    projection: Linear
 
     def __init__(self, embedding_dims: int, head_count: int, head_size: int) -> None:
         super().__init__()
@@ -41,6 +42,7 @@ class MultiHeadSelfAttention(Module):
         self.head_count = head_count
         self.head_size = head_size
         self.heads = ModuleList(SelfAttentionHead(embedding_dims, head_size) for _ in range(head_count))
+        self.projection = Linear(head_count * head_size, embedding_dims)
 
     @override
     def forward(self, x: Tensor) -> Tensor:

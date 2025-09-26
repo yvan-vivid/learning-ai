@@ -15,11 +15,13 @@ from karpathy_series.gpt_from_scratch.components.network.model import ModelWithC
 
 class BigramModel(ModelWithCrossEntropyLoss, WindowedGenerable):
     code_size: int
+    window_length: int
     embedding: Embedding
 
-    def __init__(self, code_size: int) -> None:
+    def __init__(self, code_size: int, window_length: int) -> None:
         super().__init__()
         self.code_size = code_size
+        self.window_length = window_length
         self.embedding = Embedding(code_size, code_size)
 
     @override
